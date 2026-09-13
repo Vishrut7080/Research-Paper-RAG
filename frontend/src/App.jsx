@@ -6,11 +6,15 @@ import History from "./components/History.jsx";
 
 function App() {
   const [status, setStatus] = useState("Checking backend...");
+  const [sync, setSync] = useState(0);
 
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL || "/api"}/health`)
       .then((r) => r.json())
-      .then((d) => setStatus(`Backend OK — ${d.chunks} chunks indexed`))
+      .then((d) => {
+        setStatus(`Backend OK — ${d.chunks} chunks indexed`);
+        setSync((v) => v + 1);
+      })
       .catch(() => setStatus("Backend not reachable"));
   }, []);
 
@@ -22,13 +26,16 @@ function App() {
             <h1 className="text-2xl font-bold text-primary-700">ResearchMate</h1>
             <p className="text-sm text-gray-500 mt-1">{status}</p>
           </header>
-          <DocumentUpload />
-          <DocumentsList />
-          <History />
+          <DocumentUpload onUploaded={() => setSync((v) => v + 1)} />
+          <DocumentsList refreshKey={sync} />
+          <History refreshKey={sync} />
         </aside>
 
         <main className="flex-1 flex flex-col min-h-0">
-          <ChatInterface />
+          <ChatInterface
+            onHistoryChange={() => setSync((v) => v + 1)}
+            refreshKey={sync}
+          />
         </main>
       </div>
     </div>

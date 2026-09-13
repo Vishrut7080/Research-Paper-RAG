@@ -1,3 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.prose a.citation-pill {
+  text-decoration: none;
+}

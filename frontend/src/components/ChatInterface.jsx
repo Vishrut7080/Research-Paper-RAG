@@ -1,8 +1,51 @@
 import { useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { askQuestion, fetchHistory } from "../api.js";
+import { PaperIcon, WebIcon } from "./Icons.jsx";
 import SourcePanel from "./SourcePanel.jsx";
 
-function ChatInterface({ onHistoryChange }) {
+function CitationLink({ href, children }) {
+  if (!href) return <span>{children}</span>;
+  const isPaper = href.startsWith("/api/documents/");
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className={`citation-pill mx-1 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 align-middle text-xs font-medium ${
+        isPaper
+          ? "bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100"
+          : "bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100"
+      }`}
+    >
+      {isPaper ? <PaperIcon /> : <WebIcon />}
+      <span>{children}</span>
+    </a>
+  );
+}
+
+function linkifyCitations(content, msg) {
+  if (!content) return content;
+  const urlMap = {};
+  (msg?.sources || []).forEach((s) => {
+    if (s.url) urlMap[`Paper: ${s.doc_title}`] = s.url;
+  });
+  (msg?.webResults || []).forEach((w) => {
+    if (w.url) urlMap[`Web: ${w.title}`] = w.url;
+  });
+  let out = content.replace(/【/g, "[").replace(/】/g, "]");
+  return out.replace(
+    /\[(Paper|Web): ([^\]]+)\]/g,
+    (match, kind, label, offset) => {
+      if (out[offset + match.length] === "(") return match;
+      const url = urlMap[match.slice(1, -1)];
+      return url ? `[${kind}: ${label}](${url})` : match;
+    }
+  );
+}
+
+function ChatInterface({ onHistoryChange, refreshKey = 0 }) {
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -11,20 +54,23 @@ function ChatInterface({ onHistoryChange }) {
   useEffect(() => {
     fetchHistory()
       .then(({ data }) => {
-        const items = data.flatMap((c) => [
-          { role: "user", content: c.query },
-          {
-            role: "assistant",
-            content: c.answer,
-            sources: c.sources,
-            webResults: c.web_results,
-            webSearchUsed: c.web_search_used,
-          },
-        ]);
+        const items = data
+          .slice()
+          .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+          .flatMap((c) => [
+            { role: "user", content: c.query, chatId: c.id },
+            {
+              role: "assistant",
+              content: c.answer,
+              sources: c.sources,
+              webResults: c.web_results,
+              webSearchUsed: c.web_search_used,
+            },
+          ]);
         setMessages(items);
       })
       .catch(() => {});
-  }, []);
+  }, [refreshKey]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -71,18 +117,28 @@ function ChatInterface({ onHistoryChange }) {
         {messages.map((msg, i) => (
           <div
             key={i}
+            id={msg.role === "user" ? msg.chatId : undefined}
             className={`max-w-3xl ${
               msg.role === "user" ? "ml-auto" : ""
             }`}
           >
             <div
-              className={`rounded-xl px-4 py-3 whitespace-pre-wrap text-sm ${
+              className={`rounded-xl px-4 py-3 text-sm ${
                 msg.role === "user"
-                  ? "bg-primary-600 text-white"
-                  : "bg-gray-50 border border-gray-200 text-gray-800"
+                  ? "bg-primary-600 text-white whitespace-pre-wrap"
+                  : "bg-gray-50 border border-gray-200 text-gray-800 prose prose-sm max-w-none"
               }`}
             >
-              {msg.content}
+              {msg.role === "user" ? (
+                msg.content
+              ) : (
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{ a: CitationLink }}
+                >
+                  {linkifyCitations(msg.content, msg)}
+                </ReactMarkdown>
+              )}
             </div>
             {msg.role === "assistant" && (
               <SourcePanel

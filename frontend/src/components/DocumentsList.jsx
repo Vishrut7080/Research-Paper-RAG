@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { documentFileUrl, fetchDocuments } from "../api.js";
 
-function DocumentsList() {
+function DocumentsList({ refreshKey = 0 }) {
   const [docs, setDocs] = useState([]);
 
   const load = () => {
@@ -10,10 +10,10 @@ function DocumentsList() {
       .catch(() => {});
   };
 
-  useEffect(load, []);
+  useEffect(load, [refreshKey]);
 
   return (
-    <section className="bg-white rounded-xl shadow p-4 flex flex-col gap-3">
+    <section className="bg-white rounded-xl shadow p-4 flex flex-col gap-3 flex-1 min-h-0">
       <div className="flex items-center gap-2">
         <h2 className="font-semibold text-gray-800">Your documents</h2>
         <button
@@ -23,7 +23,7 @@ function DocumentsList() {
           Refresh
         </button>
       </div>
-      <ul className="space-y-2 overflow-y-auto max-h-64">
+      <ul className="space-y-2 overflow-y-auto flex-1 min-h-0">
         {docs.length === 0 && (
           <li className="text-xs text-gray-400">No documents index yet.</li>
         )}

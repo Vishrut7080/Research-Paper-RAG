@@ -28,6 +28,17 @@ class QueryRequest(BaseModel):
     query_text: str
 
 
+def _doc_urls() -> dict:
+    db = SessionLocal()
+    try:
+        return {
+            d.filename: f"/api/documents/{d.id}/file"
+            for d in db.query(Document).all()
+        }
+    finally:
+        db.close()
+
+
 @app.get("/health")
 def health():
     index = build_index()
@@ -60,17 +71,25 @@ def query(payload: QueryRequest):
     retrieved = retrieve(query_text, k=RETRIEVAL_K)
     top_score = retrieved[0]["score"] if retrieved else 0.0
     web_search_used = top_score < WEB_SEARCH_THRESHOLD
+    doc_urls = _doc_urls()
 
-    context = "\n\n".join(
-        f"[{r['doc_title']}]\n{r['text']}" for r in retrieved
-    ) or "No relevant papers found in the corpus."
+    def paper_block(record: dict) -> str:
+        url = doc_urls.get(record["doc_title"])
+        header = f"[{record['doc_title']}]({url})" if url else f"[{record['doc_title']}]"
+        return f"{header}\n{record['text']}"
+
+    context = (
+        "\n\n".join(paper_block(r) for r in retrieved)
+        or "No relevant papers found in the corpus."
+    )
 
     web_results = []
     if web_search_used:
         web_results = search_web(query_text)
         if web_results:
             web_context = "\n\n".join(
-                f"[Web: {r['title']}]\n{r['url']}\n{r['content'][:500]}" for r in web_results
+                f"[Web: {r['title']}]({r['url']})\n{r['content'][:500]}"
+                for r in web_results
             )
             context = (
                 context
@@ -86,6 +105,7 @@ def query(payload: QueryRequest):
             "chunk_id": r["chunk_id"],
             "score": r["score"],
             "text": r["text"][:200],
+            "url": doc_urls.get(r["doc_title"]),
         }
         for r in retrieved
     ]
@@ -168,4 +188,9 @@ def document_file(doc_id: str):
     path = Path(doc.local_path)
     if not path.exists():
         raise HTTPException(status_code=404, detail="File missing on disk.")
-    return FileResponse(path, filename=doc.filename, media_type="application/pdf")
+    return FileResponse(
+        path,
+        filename=doc.filename,
+        media_type="application/pdf",
+        content_disposition_type="inline",
+    )

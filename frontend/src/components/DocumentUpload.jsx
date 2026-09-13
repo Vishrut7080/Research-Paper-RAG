@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { uploadPdf } from "../api.js";
 
-function DocumentUpload() {
+function DocumentUpload({ onUploaded }) {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
@@ -18,6 +18,7 @@ function DocumentUpload() {
           ? `Uploaded ${data.chunks} chunks from ${data.filename}`
           : data.message
       );
+      if (data.status === "success") onUploaded?.();
     } catch (err) {
       setMessage("Upload failed — is the backend running?");
     } finally {
