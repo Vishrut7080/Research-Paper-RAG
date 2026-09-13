@@ -10,3 +10,13 @@ wheels/
 .venv
 *pdf
 .env
+
+# Node / frontend
+node_modules/
+frontend/dist/
+frontend/.env
+
+# Backend runtime data (database, embeddings index, uploads)
+backend/data/
+*.db
+*.npy
