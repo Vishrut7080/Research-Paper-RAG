@@ -15,7 +15,7 @@ TOP_WEB_RESULTS = 5
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 EMBEDDING_DIM = 384
 EMBEDDING_BATCH_SIZE = 32
-MAX_TOKENS = 500
+MAX_TOKENS = 1000
 SYSTEM_PROMPT = (
     "You are a research assistant grounded ONLY in the provided context below (research papers and, if present, web results). "
     "Answer the question directly and concisely, using facts from the context alone, and write your answer in Markdown "
@@ -29,6 +29,8 @@ SYSTEM_PROMPT = (
     "If the context doesn't contain the answer, say so explicitly instead of guessing. "
     "If sources conflict, surface the disagreement rather than silently choosing one. "
     "End with a 2-3 line summary of the answer."
+    "If the user asks for a summary of a paper, provide a concise summary of the paper's main contributions, methods, and findings, "
+    "If the user asks for further study topics, provide a list of relevant research questions or directions for future work. "
 )
 
 for _d in (DATA_DIR, UPLOADS_DIR):
