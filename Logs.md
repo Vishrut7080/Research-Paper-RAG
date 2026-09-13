@@ -6,19 +6,21 @@ This file is to maintain a track of progress, objectives, tech stack and complet
 ---
 
 ## 1. Quick Overview
-- **Project Name:** MyRAG
+- **Project Name:** ResearchMate
 - **Date Created:** 9 September 2026
-- **Status:** In Progress
+- **Status:** In Progress — core RAG, web-search fallback, full-stack web dev, and SQLite persistence are done; QA and deployment are pending
 - **Author:** Vishrut
 
 ---
 
 ## 2. Key Objectives & Checklist
 - [x] Initial setup and project scaffolding for RAG
-- [x] Local System without Web Search
-- [ ] Initial setup and project scaffolding for Web Dev
-- [ ] Define system architecture and technical requirements
-- [ ] Implement core features
+- [x] Local RAG system (retrieval + generation, no web search)
+- [x] Web-search fallback (Tavily) when retrieval confidence is low
+- [x] Initial setup and project scaffolding for Web Dev
+- [x] Define system architecture and technical requirements
+- [x] Implement core features
+- [ ] Implement deferred features (topic suggestions, export chat, dark mode; see `TODO.md`)
 - [ ] Conduct user testing and quality assurance
 - [ ] Deploy to production
 
@@ -28,29 +30,35 @@ This file is to maintain a track of progress, objectives, tech stack and complet
 
 | Component | Responsibility | Tech Stack | Status |
 | :--- | :--- | :--- | :--- |
-| **RAG System** | | Sentence Transformer | In Progress
-| **Frontend** | User Interface & Client Logic | React / TypeScript | Planned |
-| **Backend API** | Business Logic & Auth | Python / FastAPI | In Progress |
-| **Database** | Persistent Storage | PostgreSQL | Active |
-| **Cache** | Session & Fast Lookups | Redis | Planned |
-
----
+| **RAG Pipeline** | Prototype retrieval + generation (notebook) | Python, `sentence-transformers`, `groq`, Tavily | Done (`rag.ipynb`) |
+| **Backend API** | Server + ported RAG modules + persistence | Python / FastAPI / Uvicorn | Working |
+| **Database** | Chunks, embeddings, chat history, document registry | SQLite / SQLAlchemy | Working |
+| **Embeddings** | `all-MiniLM-L6-v2`, 384-dim | `sentence-transformers` | Done |
+| **Retrieval** | Cosine similarity over in-memory NumPy matrix | NumPy | Done |
+| **Generation** | Grounded answer from context + sources | Groq (`groq`) | Working |
+| **Web Search** | Fallback when retrieval confidence is low | Tavily (`requests`) | Working |
+| **Frontend** | User interface & client logic (sidebar + chat) | React / Vite / Tailwind | Working |
 
 ---
 
 ## 4. Issues faced and their status
-| **Issue** | Resolved? | How? | Reason behind issue |
+| **Issue** | **Resolved?** | **How?** | **Reason behind issue** |
 | :--- | :--- | :--- | :--- |
-| **Chunking** | Yes | Had to decrease Chunking size from 150 to 50 | The chunk size for too big to run local system and I was also using print statement to print chunks.
+| **Chunking** | Yes | Reduced chunk size from 150 to 50 words to run locally while print-debugging chunks; final default tuned to 300/30 in `backend/config.py` | The chunk size was too large for the local system and print statements were used to inspect chunks |
+| **Index caching** | Yes | Replaced the old `chunks.json` + `matrix.npy` cache with a SQLite-backed index (`chunks` table) rebuilt into the in-memory matrix on startup | File cache drifted out of sync and added extra runtime state |
+| **Corpus seed filename check** | No (minor) | Known limitation — `fname.endswith("pdf")` in `backend/rag/retriever.py` is case-sensitive | Non-`.pdf` or mixed-case extensions are skipped during the one-time seed |
+| **System prompt formatting** | No (minor) | Known cosmetic issue — a couple of sentences in `SYSTEM_PROMPT` (`backend/config.py`) are concatenated without separating spaces/periods | Lines were added to the prompt at the end of the string |
 
 ---
 
 ## 5. Code Snippet Example
 
 ```python
-def greet(name: str) -> str:
-    \"\"\"Return a personalized greeting.\"\"\"
-    return f"Hello, {name}! Ready to build something great?"
-
-if __name__ == "__main__":
-    print(greet("Developer"))
+answer, sources, web_results, web_search_used = ask("What is Machine Learning?")
+print(answer)
+for s in sources:
+    print(f"[{s['score']:.3f}] {s['doc_title']}")
+if web_search_used:
+    for r in web_results:
+        print(f"- {r['title']}\n  {r['url']}")
+```
