@@ -65,8 +65,9 @@ The **same logic is ported to `backend/`** so the FastAPI server behaves identic
 | Web search | Tavily (`requests`) — `TAVILY_API_KEY` in `.env` |
 | Server | FastAPI + Uvicorn (`backend/`) |
 | Storage | SQLite via SQLAlchemy (`backend/data/research.db`) |
-| Frontend | React + Vite + Tailwind (`frontend/`) |
-| Utilities | `scikit-learn`, `python-dotenv` |
+| Frontend | React + Vite + Tailwind (`frontend/`), Markdown rendering via `react-markdown` + `remark-gfm` |
+| Evaluation | `notebooks/evaluation.ipynb` (`pandas`, `matplotlib`) — RAG vs plain-LLM, LLM-as-a-judge |
+| Utilities | `scikit-learn` (imported in `rag.ipynb` but currently unused), `python-dotenv` |
 
 > The `backend/` + `frontend/` full-stack is now implemented. Claude and ChromaDB remain future options — see `TODO.md`.
 
@@ -88,11 +89,15 @@ uv sync                      # install Python deps (creates .venv)
 
 ### 2a. Notebook (research/prototyping)
 
+`jupyter` is not a project dependency, so install/run it on demand with `uv` (this does not modify `uv.lock`):
+
 ```bash
-uv run jupyter notebook rag.ipynb
+uv run --with jupyter jupyter lab rag.ipynb
 ```
 
 Run cells top to bottom. The notebook builds the full RAG pipeline and ends with a demo query. If the Groq API returns a rate-limit error (HTTP 429), wait a minute and re-run the final cell — or use a smaller model by changing `GROQ_MODEL` in your `.env`.
+
+> The evaluation notebook (`notebooks/evaluation.ipynb`) additionally needs `pandas` + `matplotlib`, which are already in `pyproject.toml`; run it the same way.
 
 ### 2b. Full stack (server + web app)
 
@@ -126,6 +131,12 @@ Upload a PDF, ask a question, and answers appear with `[Paper]`/`[Web]` sources.
 | `GET` | `/documents` | All documents (`corpus`/`upload` source tag + chunk counts) |
 | `GET` | `/documents/{id}/file` | Download the original PDF file |
 
+### Evaluation (`notebooks/evaluation.ipynb`)
+
+An evaluation notebook compares the **full RAG pipeline** against a **plain zero-shot LLM baseline** (no retrieval) on **15 queries**: 12 answerable from the corpus (each with an expected source) and 3 out-of-corpus queries that trigger the Tavily web fallback. An **LLM-as-a-judge** call scores both answers on a 1–5 rubric — correctness, groundedness, completeness, conciseness — with A/B labels randomly assigned to avoid position bias. Results and charts are cached in `evaluation_results/` (`evaluation_results.json`/`.csv`, plus `mean_scores_per_dimension.png`, `scores_per_question.png`, `latency_citations_overall.png`).
+
+> **Caveat:** the saved results were produced against an **earlier 9-PDF corpus**. Two questions reference papers that are not in the current `research_papers/` folder (`Large Language` survey and `Retrieval-Augmented Generation`), so their `expected_hit` is `false` and the numbers have not been regenerated for the present corpus.
+
 ---
 
 ## What Didn't Work
@@ -139,37 +150,38 @@ These are the approaches we tried and abandoned, or problems we hit during devel
 | **ChromaDB** | Considered as a vector store, but added a dependency that duplicated what NumPy + SQLite already did | Kept the lightweight in-memory cosine-similarity approach |
 | **Claude API** | Initially planned as the LLM, but Groq was faster and had a generous free tier | Switched to Groq; Claude remains a future option in `TODO.md` |
 | **Case-sensitive filename matching** | `fname.endswith("pdf")` misses `*.PDF` on case-sensitive file systems; unresolved minor bug | Logged in `Logs.md`; the current corpus is all lowercase so it works, but this is a real gap for user uploads |
+| **Evaluation on a stale corpus** | The committed evaluation results were generated against an earlier 9-PDF set; two questions expected papers no longer in `research_papers/` (LLM survey, RAG) | Not regenerated — the question set and results were kept as historical artefacts |
 
 ## Limitations
 
-- **Limited evaluation.** The notebook has **no formal baseline yet** — a TF-IDF vs. dense-vector **recall@3** comparison on hand-labeled queries is planned as part of the evaluation harness in `TODO.md`. Currently only qualitative spot-checking of retrieved chunks and generated answers has been done. There is also no scoring of *answer quality* (faithfulness/groundedness). A fuller evaluation harness is listed in `TODO.md`.
+- **Evaluation coverage.** `notebooks/evaluation.ipynb` does compare RAG against a plain zero-shot LLM with an LLM-as-a-judge rubric, so answer quality (correctness/groundedness/completeness/conciseness) *is* scored. However, there is **no TF-IDF/BM25 retrieval baseline**, and the saved results were run on an earlier 9-PDF corpus whose question set references two papers no longer present. Regenerating the results against the current corpus is tracked in `TODO.md`.
 - **API key dependency.** The system requires a valid `GROQ_API_KEY` to generate answers. Without it, retrieval works but generation fails. Free-tier rate limits (e.g., 429 errors) can block the notebook's final cell.
 - **No document-level deduplication.** If the same PDF is uploaded twice (via the UI or corpus seed), it gets indexed twice with different chunk IDs.
 - **Single-process backend.** The FastAPI server runs a single worker; concurrent requests may be slow because embedding is CPU-bound.
 - **Fixed embedding model.** `all-MiniLM-L6-v2` is fast but not the most accurate. Switching requires re-embedding the entire corpus.
 - **PDF text extraction is imperfect.** `pypdf` cannot handle scanned PDFs, complex tables, or figures — only text-based PDFs.
-- **No persistent vector index.** Embeddings are rebuilt from SQLite on every server startup. For large corpora this would be slow; currently acceptable at 435 chunks.
+- **No persistent vector index.** Embeddings are rebuilt from SQLite on every server startup. For large corpora this would be slow; currently acceptable at roughly 450 chunks for the `research_papers/` corpus.
 
 ## Status
 
-- **Working**: Local retrieval + generation with sources and similarity scores; web-search fallback; FastAPI backend; React UI; chat history in SQLite
-- **In progress** (see `TODO.md`): fuller evaluation harness, topic suggestions, export, dark mode, deployment.
+- **Working**: Local retrieval + generation with sources and similarity scores; web-search fallback; FastAPI backend; React UI; chat history in SQLite; RAG-vs-baseline evaluation notebook
+- **In progress** (see `TODO.md`): TF-IDF/BM25 retrieval baseline, regenerating evaluation results on the current corpus, topic suggestions, export, dark mode, deployment.
 
 ---
 
 ## Self-Evaluation Against the Project Rubric
 
 **Q1 — Does it run end-to-end from a clean clone, not just on your machine?**
-Yes, with caveats. `uv sync` + `npm install` reproduce the environment, and the 24 MB corpus is committed, so a fresh clone has all data. The full-stack path (`uv run uvicorn ...` + `npm run dev`) works without anything from this machine. Two non-reproducible bits are documented upfront: the notebook's last cell needs a live Groq API key (and free-tier 429 rate limits currently surface as a raw traceback in the saved output — a nicer error is planned), and the `backend/data/research.db` is gitignored so the first `/health` call re-seeds and re-embeds the corpus (takes a few minutes).
+Yes, with caveats. `uv sync` + `npm install` reproduce the environment, and the full-stack path (`uv run uvicorn ...` + `npm run dev`) works without anything from this machine. Two non-reproducible bits are documented upfront: the notebook's last cell needs a live Groq API key (and free-tier 429 rate limits currently surface as a raw traceback in the saved output — a nicer error is planned), and the `backend/data/research.db` is gitignored so the first `/health` call re-seeds and re-embeds the corpus (takes a few minutes). Note also that **`*.pdf` is gitignored, so the PDF corpus is *not* committed** — a fresh clone must place its own PDFs in `research_papers/` before the first `/health` call (otherwise the corpus seeds empty).
 
 **Q2 — Is there an actual baseline in the notebook, not just a final number?**
-Not yet. The notebook currently demonstrates the pipeline end-to-end with a single demo query but contains no baseline comparison. A **TF-IDF vs. `all-MiniLM-L6-v2`** retrieval baseline (recall@k on hand-labeled queries) is planned — see the evaluation harness in `TODO.md`.
+Yes. `notebooks/evaluation.ipynb` compares the full RAG pipeline against a **plain zero-shot LLM baseline** across 15 queries and reports per-question and aggregate scores. A **TF-IDF/BM25 retrieval baseline** (recall@k on hand-labeled queries) is still missing — see `TODO.md`.
 
 **Q3 — Did you report what didn't work, not only what did?**
-Yes. See the **What Didn't Work** table above (chunk-size debugging, the JSON+npy cache corruption, dropped ChromaDB/Claude plans, the case-sensitive filename bug) plus the **Limitations** list (no answer-quality scoring yet, no dedup, single-process backend, imperfect PDF extraction).
+Yes. See the **What Didn't Work** table above (chunk-size debugging, the JSON+npy cache corruption, dropped ChromaDB/Claude plans, the case-sensitive filename bug, the stale-corpus evaluation) plus the **Limitations** list (no retrieval baseline yet, stale eval corpus, no dedup, single-process backend, imperfect PDF extraction).
 
 **Q4 — Is the generated answer itself evaluated, or just retrieval?**
-Neither, formally. There is no numeric evaluation in the notebook yet — retrieval and generation have only been spot-checked qualitatively. A retrieval baseline (recall@k) and answer-grounding evaluation are planned, listed in `TODO.md`.
+The generated answer **is** evaluated. Each RAG and baseline answer is scored 1–5 by an LLM-as-a-judge on correctness, groundedness, completeness, and conciseness (`evaluation_results/`). Retrieval is measured indirectly via an `expected_hit` flag on the expected source; there is no standalone recall@k retrieval benchmark yet.
 
 ---
 
@@ -184,8 +196,10 @@ Capstone Project/
 ├── rag.ipynb              ← the RAG implementation (web search included)
 ├── backend/               ← FastAPI server + RAG modules + SQLite (SQLAlchemy)
 ├── frontend/              ← React + Vite + Tailwind web app
-├── research_papers/       ← PDF corpus (data you query over)
-├── reference/             ← Lab6 instructions & guidelines PDFs
+├── notebooks/             ← evaluation.ipynb (RAG vs baseline)
+├── evaluation_results/    ← cached scores + charts from the evaluation notebook
+├── research_papers/       ← PDF corpus (data you query over; GITIGNORED)
+├── ResearchMate_Presentation.pptx  ← project slides
 ├── pyproject.toml         ← project metadata + dependencies (uv-managed)
 ├── uv.lock                ← locked dependency versions
 ├── .python-version        ← Python 3.12

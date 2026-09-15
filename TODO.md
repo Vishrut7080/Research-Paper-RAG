@@ -20,9 +20,11 @@ Items intentionally cut from the current implementation round. Each maps to a ch
 - [ ] Toggle button persisted to `localStorage`
 
 ## 4. Evaluation Harness & Submission Prep
-- [ ] `backend/rag/evaluator.py` — retrieval accuracy@k over `test_queries.json` (15 queries + expected_sources)
-- [ ] Baselines: BM25 (`rank-bm25`) and zero-shot (no retrieval)
-- [ ] `notebooks/evaluation.ipynb` with baseline bar chart, per-query breakdown, response-time histogram
+- [x] `notebooks/evaluation.ipynb` — 15 queries + expected sources, RAG-vs-baseline comparison, per-query breakdown, score/latency charts (`evaluation_results/`)
+- [x] Zero-shot (no retrieval) baseline + LLM-as-a-judge rubric (correctness/groundedness/completeness/conciseness)
+- [ ] **Retrieval baseline** — TF-IDF/BM25 (`rank-bm25` or `sklearn`) recall@k; the current baseline is a plain LLM, not a retrieval method
+- [ ] **Regenerate evaluation results** on the current `research_papers/` corpus (the committed results reference two papers that are no longer present)
+- [ ] `backend/rag/evaluator.py` + `test_queries.json` — move the harness out of the notebook (optional)
 - [ ] `requirements.txt` finalized, fresh-clone verification script
 - [ ] Presentation rehearsal + GitHub/Moodle submission checklist
 

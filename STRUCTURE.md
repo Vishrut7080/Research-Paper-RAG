@@ -17,14 +17,26 @@ Capstone Project/
 ├── TODO.md                         ← out-of-scope / future work
 ├── Logs.md
 ├── rag.ipynb
+├── ResearchMate_Presentation.pptx  ← project slides
 ├── backend/                        ← FastAPI server + RAG modules + SQLite
+│   ├── __init__.py
 │   ├── main.py
 │   ├── config.py
 │   ├── models.py
 │   ├── init_db.py
 │   ├── rag/                        ← ported notebook logic
+│   │   ├── __init__.py
+│   │   ├── pdf_processor.py
+│   │   ├── embeddings.py
+│   │   ├── retriever.py
+│   │   ├── generator.py
+│   │   └── web_search.py
 │   └── data/                       ← runtime DB / uploads (gitignored)
 ├── frontend/                       ← React + Vite + Tailwind web app
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── vite.config.js
+│   ├── index.html
 │   └── src/
 │       ├── main.jsx               ← React entry point
 │       ├── App.jsx
@@ -33,11 +45,11 @@ Capstone Project/
 │       └── components/
 │           ├── Icons.jsx          ← inline SVG icons (PaperIcon, WebIcon)
 │           └── ...
+├── notebooks/
+│   └── evaluation.ipynb           ← RAG vs plain-LLM evaluation
+├── evaluation_results/            ← cached scores (JSON/CSV) + charts (PNG)
 ├── research_papers/
-│   └── 7 PDF research papers       ← the query corpus
-├── reference/
-│   ├── Lab6_Instructions.pdf
-│   └── Lab6_Own_Project_Guidelines.pdf
+│   └── 8 PDFs                      ← the query corpus (gitignored)
 ├── pyproject.toml
 ├── uv.lock
 ├── .python-version
@@ -61,16 +73,16 @@ Out-of-scope items captured during development (topic suggestions, export chat, 
 
 ### `Logs.md`
 Development progress log (author: Vishrut, created 9 Sep 2026).
-- Project name: **MyRAG**, status: **In Progress**
-- Roadmap checklist: local system is done; web dev, spec, features, QA, deploy are pending
-- Issues log: **chunking** — chunk size had to be cut from 150 to 50 words to run locally and while print-debugging chunks
+- Project name: **ResearchMate**, status: **In Progress** — core RAG, web-search fallback, full-stack web dev, SQLite persistence, and evaluation are done; QA and deployment are pending
+- Roadmap checklist: local system, web dev, and evaluation are done; deferred features, QA/testing, and deploy are pending
+- Issues log: **chunking** (cut from 150 to 50 words while print-debugging, final default 300/30), **index caching**, **corpus seed filename check**, **system prompt formatting**
 
 ### `rag.ipynb`
 **The heart of the project** — the entire working RAG implementation as a Jupyter notebook. Do most of your work here.
 
 | Cell(s) | Section | What it defines / does |
 | :--- | :--- | :--- |
-| 1 | Setup | Imports: `numpy`, `os`, `json`, `requests`, `SentenceTransformer`, `PdfReader` |
+| 1 | Setup | Imports: `numpy`, `os`, `json`, `requests`, `SentenceTransformer`, `PdfReader`, and `sklearn.feature_extraction.text.TfidfVectorizer` (imported but unused) |
 | 2 | Model | Loads `embedder = SentenceTransformer('all-MiniLM-L6-v2')` |
 | 5 | Load | `load_corpus(path='research_papers')` — extracts text from every `.pdf`/`.txt` into `{id, title, text}` |
 | 6 | Load | Builds `corpus = load_corpus()` |
@@ -83,19 +95,27 @@ Development progress log (author: Vishrut, created 9 Sep 2026).
 | 18 | LLM client | Loads `.env`, creates `Groq` client with `GROQ_API_KEY` / `GROQ_MODEL` |
 | 19 | Web fallback | `WEB_SEARCH_THRESHOLD=0.40` + `search_web(query, max_results=5)` — Tavily API call, returns `[{title, url, content}]`, `[]` if no key |
 | 20 | Generation | `ask(query, k=3)` — retrieves, runs web search if top score < threshold, calls Groq, returns `(answer, retrieved, web_results, web_search_used)` |
-| 21 | Demo | `ask('What is Machine Learning?')` — end-to-end example that also prints web results when used |
+| 21 | Demo | `answer, sources, web_results, web_search_used = ask('What is Machine Learning?')` — end-to-end example that also prints web results when used |
+
+### `notebooks/evaluation.ipynb`
+Quantitative comparison of the full RAG pipeline against a **plain zero-shot LLM baseline** (no retrieval). It reuses `backend.rag` + `backend.config` for retrieval, runs 15 queries (12 answerable from the corpus with an expected source, 3 out-of-corpus that trigger the Tavily fallback), and calls an **LLM-as-a-judge** to score both answers on a 1–5 rubric (correctness, groundedness, completeness, conciseness) with randomized A/B labels. Results are cached to `evaluation_results/evaluation_results.json` (set `REDO = True` to re-run) and summarized with `pandas` + `matplotlib` charts. Note: the saved results were produced against an earlier 9-PDF corpus that included an LLM survey and the RAG paper, so two questions now reference papers absent from `research_papers/`.
+
+### `evaluation_results/`
+Cached evaluation artefacts: `evaluation_results.json` + `.csv` (per-question scores, answers, latencies, token counts) and three PNG charts (`mean_scores_per_dimension.png`, `scores_per_question.png`, `latency_citations_overall.png`).
 
 ### `pyproject.toml`
 Python project metadata and dependencies:
 - `fastapi` + `uvicorn` — backend server (`backend/main.py`)
 - `fonttools` — fixes pypdf CFF/Type1 font warnings and improves LaTeX math-symbol extraction
 - `groq` — LLM API client for generation
+- `matplotlib` — evaluation charts (`notebooks/evaluation.ipynb`)
 - `numpy` — embedding matrix + cosine similarity
+- `pandas` — evaluation result tables
 - `pypdf` — PDF text extraction
 - `python-dotenv` — reads `.env`
 - `python-multipart` — file-upload parsing for `/upload`
 - `requests` — Tavily web-search API calls
-- `scikit-learn` — provides `TfidfVectorizer` for a future TF-IDF **retrieval baseline** (not yet implemented; see `TODO.md`)
+- `scikit-learn` — provides `TfidfVectorizer`; imported in `rag.ipynb` cell 1 but **not currently used** (the implemented baseline is a plain LLM, not TF-IDF)
 - `sentence-transformers` — `all-MiniLM-L6-v2` embeddings
 - `sqlalchemy` — SQLite ORM (chat history / document registry)
 
@@ -124,7 +144,7 @@ Ignores Python caches/builds, the virtual env (`.venv`), `*.pdf`, `.env`, `node_
 ## Directories
 
 ### `research_papers/` — the query corpus
-Seven PDFs covering optimization and machine-learning methods. Each file name becomes the document `id` (extension stripped) and `title` (with extension):
+Eight PDFs at present. Each file name becomes the document `id` (extension stripped) and `title` (with extension):
 
 1. `A Systematic Review of the Whale Optimization Algorithm - Theoretical Foundation, Improvements, and Hybridizations.pdf`
 2. `A survey on multi-objective hyperparameter optimization algorithms for machine learning.pdf`
@@ -133,13 +153,11 @@ Seven PDFs covering optimization and machine-learning methods. Each file name be
 5. `Puma optimizer - a novel metaheuristic optimization algorithm and its application in machine learning.pdf`
 6. `Review Of Feature Selection Methods Using Optimization Algorithm.pdf`
 7. `Segmenting and classifying skin lesions using a.pdf`
+8. `Nat Geo - Guide to Photography.pdf` — unrelated leftover; safe to remove (nothing references it)
 
-Add more PDFs here to grow the corpus — `load_corpus()` picks them up automatically.
+Add more PDFs here to grow the corpus — `load_corpus()` picks them up automatically. **Note:** `*.pdf` is gitignored, so this folder is empty on a fresh clone until you add PDFs.
 
-### `reference/`
-Course material, for reference only (not read by any code):
-- `Lab6_Instructions.pdf` — Lab 6 task instructions
-- `Lab6_Own_Project_Guidelines.pdf` — project guidelines
+> A former `reference/` folder (Lab 6 instructions/guidelines PDFs) is no longer present in the repository.
 
 ---
 
@@ -197,13 +215,16 @@ Runtime state: `research.db` (chunks, embeddings, documents, chat history — th
 ## Frontend (`frontend/`) — React + Vite + Tailwind
 
 ### `frontend/package.json`
-Deps: `react`, `react-dom`, `axios`. Dev deps: `vite`, `@vitejs/plugin-react`, `tailwindcss`, `postcss`, `autoprefixer`.
+Deps: `react`, `react-dom`, `axios`, `react-markdown`, `remark-gfm`. Dev deps: `vite`, `@vitejs/plugin-react`, `tailwindcss`, `@tailwindcss/typography`, `postcss`, `autoprefixer`.
+
+### `frontend/package-lock.json`
+npm lockfile pinning exact JS dependency versions (`npm install` uses it for reproducible installs).
 
 ### `frontend/vite.config.js`
 Dev server on port 5173; proxies `/api/*` → `http://localhost:8000` (so `VITE_API_URL` is optional in dev).
 
 ### `frontend/tailwind.config.js` + `postcss.config.js`
-Tailwind v3 setup with a `primary` blue palette and JSX content paths.
+Tailwind v3 setup with a `primary` blue palette and JSX content paths. The `@tailwindcss/typography` plugin is enabled so LLM Markdown answers render with `prose` styling.
 
 ### `frontend/src/main.jsx`
 React entry point — mounts `<App />` into `#root` via `ReactDOM.createRoot` (wrapped in `StrictMode`).
@@ -224,7 +245,7 @@ File picker (`.pdf`) → `POST /upload` → shows chunk count or error.
 Sidebar list of all documents from `GET /documents` with a `corpus`/`upload` badge, chunk count + date, and a "Download" link to `/documents/{id}/file`; refresh button.
 
 ### `frontend/src/components/ChatInterface.jsx`
-Message list, query input, submit → `POST /query`; loads prior history on mount; auto-scrolls; renders `SourcePanel` under assistant messages.
+Message list, query input, submit → `POST /query`; loads prior history on mount; auto-scrolls; renders assistant answers as GFM Markdown (`react-markdown` + `remark-gfm`); renders `SourcePanel` under assistant messages.
 
 ### `frontend/src/components/SourcePanel.jsx`
 Renders retrieved `[Paper]` chunks (title + score + preview) and `[Web]` results (title link + preview); shows an amber banner when web search was used.
@@ -246,7 +267,8 @@ Sidebar list of past queries from `GET /history` with timestamp + "web" tag; loc
 2. **Where is the (notebook) code?** → `rag.ipynb` (cells mapped above)
 3. **Where is the server code?** → `backend/` (FastAPI) + `backend/rag/` (ported RAG)
 4. **Where is the web UI?** → `frontend/`
-5. **What's done, what's next?** → `Logs.md` (progress) and `TODO.md` (future work)
-6. **Where does the data come from?** → `research_papers/` + uploaded PDFs in `backend/data/uploads`
-7. **Where are the API keys?** → `.env` (gitignored; template in `.env.example`)
-8. **What are the dependencies?** → `pyproject.toml` / `uv.lock` / `frontend/package.json`
+5. **How was it evaluated?** → `notebooks/evaluation.ipynb` + `evaluation_results/`
+6. **What's done, what's next?** → `Logs.md` (progress) and `TODO.md` (future work)
+7. **Where does the data come from?** → `research_papers/` + uploaded PDFs in `backend/data/uploads`
+8. **Where are the API keys?** → `.env` (gitignored; template in `.env.example`)
+9. **What are the dependencies?** → `pyproject.toml` / `uv.lock` / `frontend/package.json`

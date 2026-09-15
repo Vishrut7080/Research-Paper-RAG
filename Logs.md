@@ -8,7 +8,7 @@ This file is to maintain a track of progress, objectives, tech stack and complet
 ## 1. Quick Overview
 - **Project Name:** ResearchMate
 - **Date Created:** 9 September 2026
-- **Status:** In Progress — core RAG, web-search fallback, full-stack web dev, and SQLite persistence are done; QA and deployment are pending
+- **Status:** In Progress — core RAG, web-search fallback, full-stack web dev, SQLite persistence, and evaluation are done; QA and deployment are pending
 - **Author:** Vishrut
 
 ---
@@ -20,6 +20,7 @@ This file is to maintain a track of progress, objectives, tech stack and complet
 - [x] Initial setup and project scaffolding for Web Dev
 - [x] Define system architecture and technical requirements
 - [x] Implement core features
+- [x] Evaluation harness (`notebooks/evaluation.ipynb`) — RAG vs plain-LLM baseline with LLM-as-a-judge scoring
 - [ ] Implement deferred features (topic suggestions, export chat, dark mode; see `TODO.md`)
 - [ ] Conduct user testing and quality assurance
 - [ ] Deploy to production
@@ -38,6 +39,7 @@ This file is to maintain a track of progress, objectives, tech stack and complet
 | **Generation** | Grounded answer from context + sources | Groq (`groq`) | Working |
 | **Web Search** | Fallback when retrieval confidence is low | Tavily (`requests`) | Working |
 | **Frontend** | User interface & client logic (sidebar + chat) | React / Vite / Tailwind | Working |
+| **Evaluation** | RAG vs plain-LLM comparison + LLM-as-a-judge scores | `pandas` / `matplotlib` (`notebooks/evaluation.ipynb`) | Done (results on an earlier corpus) |
 
 ---
 
@@ -48,6 +50,7 @@ This file is to maintain a track of progress, objectives, tech stack and complet
 | **Index caching** | Yes | Replaced the old `chunks.json` + `matrix.npy` cache with a SQLite-backed index (`chunks` table) rebuilt into the in-memory matrix on startup | File cache drifted out of sync and added extra runtime state |
 | **Corpus seed filename check** | No (minor) | Known limitation — `fname.endswith("pdf")` in `backend/rag/retriever.py` is case-sensitive | Non-`.pdf` or mixed-case extensions are skipped during the one-time seed |
 | **System prompt formatting** | No (minor) | Known cosmetic issue — a couple of sentences in `SYSTEM_PROMPT` (`backend/config.py`) are concatenated without separating spaces/periods | Lines were added to the prompt at the end of the string |
+| **Evaluation corpus drift** | No (minor) | The saved `evaluation_results/` were produced on an earlier 9-PDF corpus; two questions expect the LLM survey and RAG papers, which are not in the current `research_papers/` folder, so their `expected_hit` is `false` | The corpus changed after the evaluation was run; results were not regenerated |
 
 ---
 
