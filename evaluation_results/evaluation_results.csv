@@ -1,0 +1,355 @@
+id,category,question,expected_source,rag_score,base_score,winner,rag_correctness,rag_groundedness,rag_completeness,rag_conciseness,base_correctness,base_groundedness,base_completeness,base_conciseness,judge_notes,rag_top1,web_search_used,rag_citations,base_citations,expected_hit,rag_latency_s,base_latency_s,rag_prompt_tokens,rag_completion_tokens,base_prompt_tokens,base_completion_tokens,rag_answer,base_answer
+q1,in-corpus,What are the main research directions in large language models covered by the survey?,Large Language,3.5,2.5,rag,4,3,4,3,3,1,2,4,"Answer B better covers the survey’s likely main directions and provides citations, whereas Answer A lacks sources and omits several key areas.",0.566,False,6,0,True,4.43,1.16,3746,887,138,500,"**Main research directions highlighted in the survey**
+
+- **Scaling laws and model‑size trade‑offs** – The survey reviews how the “scaling laws” (Kaplan et al., 2020) guided the creation of ever larger models (GPT‑3, Gopher) and how later work (e.g., Chinchilla) shifted emphasis from sheer parameter count to the number of training tokens [Paper: A Survey of Large Language Models.pdf](/api/documents/.../A%20Survey%20of%20Large%20Language%20Models.pdf).
+
+- **Efficiency‑focused architectures** – It discusses models that prioritize inference speed and memory usage, such as Llama, which is designed for computational efficiency [Paper: A Survey of Large Language Models.pdf](/api/documents/.../A%20Survey%20of%20Large%20Language%20Models.pdf).
+
+- **Open‑source vs. closed‑source ecosystems** – The paper contrasts openly released models (BLOOM, OPT, Falcon) with proprietary systems (GPT‑3, Chinchilla) and examines how community‑driven releases are challenging the dominance of closed‑source LLMs [Paper: A Survey of Large Language Models.pdf](/api/documents/.../A%20Survey%20of%20Large%20Language%20Models.pdf).
+
+- **Alignment and instruction‑tuning** – It highlights the importance of “intricate tuning techniques” that align LLM outputs with human preferences (e.g., reinforcement learning from human feedback), a process still being refined in the open‑source community [Paper: A Survey of Large Language Models.pdf](/api/documents/.../A%20Survey%20of%20Large%20Language%20Models.pdf).
+
+- **Distillation and synthetic‑instruction training** – The survey notes recent attempts to bridge the performance gap between open‑source and commercial models through distillation‑based approaches (Vicuna, Alpaca) that train on synthetically generated instruction data [Paper: A Survey of Large Language Models.pdf](/api/documents/.../A%20Survey%20of%20Large%20Language%20Models.pdf).
+
+- **Social impact and bias mitigation** – It also references work on evaluating and reducing harmful or biased model behaviours, emphasizing the need for continued research on safety and fairness [Paper: A Survey of Large Language Models.pdf](/api/documents/.../A%20Survey%20of%20Large%20Language%20Models.pdf).
+
+---
+
+**Summary**  
+The survey organizes LLM research around six core directions: scaling laws, efficiency‑driven architectures, open‑source versus closed‑source dynamics, alignment/instruction‑tuning, distillation with synthetic instructions, and the social/ethical implications of large models.","The survey organizes the rapidly expanding LLM literature into a handful of broad research “pillars.”  Across most recent surveys the main directions are:
+
+| Research direction | Core focus | Representative topics |
+|-------------------|------------|------------------------|
+| **Model scaling & architecture** | How performance changes with more parameters, data, and compute; new architectural tweaks that improve efficiency or capability. | Scaling laws, mixture‑of‑experts (MoE) layers, sparse vs. dense Transformers, vision‑language or audio‑language extensions, recurrent or retrieval‑augmented variants. |
+| **Data collection & preprocessing** | Building massive, high‑quality corpora and curating them for safety and diversity. | Web‑crawls, deduplication, data filtering, multilingual and domain‑specific corpora, data‑centric curriculum learning. |
+| **Training algorithms & objectives** | Optimizing the learning process to get more out of the same compute. | Adaptive optimizers (AdamW, Lion), gradient checkpointing, mixed‑precision / quantized training, contrastive or RL‑based pre‑training objectives, instruction‑following fine‑tuning. |
+| **Instruction tuning & alignment** | Shaping LLM behavior so it follows human intent and obeys safety constraints. | Supervised fine‑tuning on instruction datasets, Reinforcement Learning from Human Feedback (RLHF), preference modeling, red‑team/blue‑team adversarial training, policy‑gradient safety methods. |
+| **Evaluation & benchmarking** | Measuring what LLMs can do, where they fail, and how they compare across scales. | Zero‑shot and few‑shot prompting, standardized suites (BIG‑Bench, HELM, MMLU, AGIEval), factuality / halluc"
+q2,in-corpus,How does the Whale Optimization Algorithm work and how has it been improved?,Whale,3.75,2.0,rag,4,3,4,4,3,1,2,2,"Answer A provides a fuller, mostly accurate overview with some citations, while B is truncated and lacks sources.",0.816,False,3,0,True,16.64,6.56,2931,1000,137,500,"**How the Whale Optimization Algorithm (WOA) works**
+
+| Step | Description | Source |
+|------|-------------|--------|
+| **Inspiration** | Mimics the bubble‑net hunting of humpback whales that encircle and capture prey by creating a spiral of bubbles. | [Paper: A Systematic Review of the Whale Optimization Algorithm - Theoretical Foundation, Improvements, and Hybridizations.pdf](/api/documents/.../A%20Systematic%20Review%20of%20the%20Whale%20Optimization%20Algorithm%20-%20Theoretical%20Foundation,%20Improvements,%20and%20Hybridizations.pdf) |
+| **Population** | A set of candidate solutions (whales) is initialized randomly in the search space. | Same |
+| **Three main strategies** | 1. **Encircling prey** – each whale moves toward the current best solution (the “prey”) using Eq. (1). <br>2. **Search (exploration) phase** – whales randomly select a position to explore new regions. <br>3. **Spiral bubble‑net attack (exploitation) phase** – whales update positions along a shrinking‑spiral path toward the prey. | Same |
+| **Mathematical form** | Position of the *i*‑th whale at iteration *t*:  \(\mathbf{X}_i^t = (x_{i,1}^t,\dots ,x_{i,D}^t)\) where *N* is the population size and *D* the problem dimension. The update equations use a coefficient **a** that linearly decreases from 2 to 0 to balance exploration and exploitation. | Same |
+| **Dual‑stage view** (alternative wording) | The algorithm consists of an **exploration phase** (surrounding prey and “curved” updating) and an **exploitation phase** (searching for prey). | [Paper: Review Of Feature Selection Methods Using Optimization Algorithm.pdf](/api/documents/.../Review%20Of%20Feature%20Selection%20Methods%20Using%20Optimization%20Algorithm.pdf) |
+
+---
+
+**How WOA has been improved**
+
+| Improvement type | Typical technique | Example / Outcome | Source |
+|------------------|-------------------|-------------------|--------|
+| **Algorithmic refinements** | Modifying the control parameters (e.g., the *a* coefficient) or adding chaotic maps to enhance randomness and avoid premature convergence. | Leads to higher exploration percentages (e.g., 13 %–18 % vs. the original’s ~13 % on multimodal tests). | [Paper: A Systematic Review of the Whale Optimization Algorithm - Theoretical Foundation, Improvements, and Hybridizations.pdf](/api/documents/.../A%20Systematic%20Review%20of%20the%20Whale%20Optimization%20Algorithm%20-%20Theoretical%20Foundation,%20Improvements,%20and%20Hybridizations.pdf) |
+| **Hybridization** | Combining WOA with other meta‑heuristics (e.g., Simulated Annealing, Genetic Algorithm, Particle Swarm, Ant Lion Optimizer) or with problem‑specific operators. | A permutation of WOA + Simulated Annealing was proposed for feature‑selection optimization.","**Whale Optimization Algorithm (WOA) – core idea**
+
+WOA is a nature‑inspired meta‑heuristic that mimics the hunting behavior of humpback whales, especially the “bubble‑net” feeding strategy. It is a population‑based search that iteratively moves a set of candidate solutions (the “whales”) through the problem space toward the best‑found solution (the “prey”).
+
+| Phase | Biological metaphor | Mathematical model | What the algorithm does |
+|-------|----------------------|--------------------|--------------------------|
+| **Initialization** | A pod of whales is released into the ocean. | Randomly generate N vectors \(X_i\;(i=1…N)\) within the decision‑variable bounds. | Provides a diverse starting population. |
+| **Encircling prey** | Whales perceive the location of the prey and surround it. | \(\displaystyle \vec"
+q3,in-corpus,What improvements and hybridizations of the Whale Optimization Algorithm are proposed in the literature?,Whale,2.0,3.75,base,2,1,2,3,4,3,4,4,"Answer B gives a broader, more accurate overview despite lacking citations, while Answer A relies on fabricated references and is incomplete.",0.841,False,6,0,True,24.89,6.37,2730,1000,139,500,"**Improvements to the Whale Optimization Algorithm (WOA)**  
+
+| Type of improvement | Representative proposals in the literature |
+|----------------------|---------------------------------------------|
+| **Multi‑strategy / multi‑operator mechanisms** – adding several search operators (mutation, crossover‑like moves, etc.) to boost exploration and exploitation. | • “A novel improved whale optimization algorithm for optimization problems with multi‑strategy and hybrid algorithm” [Paper: A Systematic Review of the Whale Optimization Algorithm - Theoretical Foundation, Improvements, and Hybridizations.pdf] <br>• “A modified whale optimization algorithm with multi‑strategy mechanism for global optimization problems” [Paper: A Systematic Review of the Whale Optimization Algorithm - Theoretical Foundation, Improvements, and Hybridizations.pdf] |
+| **Adaptive / parameter‑learning schemes** – e.g., Lamarckian learning, self‑adjusting control parameters. | • “Whale optimization algorithm based on Lamarckian learning for global optimization problems” [Paper: A Systematic Review of the Whale Optimization Algorithm - Theoretical Foundation, Improvements, and Hybridizations.pdf] |
+| **Mutation‑focused variants** – inserting mutation operators and similarity‑removal steps to avoid premature convergence. | • “A whale optimization algorithm with combined mutation and removing similarity for global optimization and multilevel thresholding image segmentation” [Paper: A Systematic Review of the Whale Optimization Algorithm - Theoretical Foundation, Improvements, and Hybridizations.pdf] |
+| **Up‑graded / refined basic operators** – redesigning encircling, bubble‑net, or search phases. | • “Upgraded whale optimization algorithm for fuzzy logic based vibration control of nonlinear steel structure” [Paper: A Systematic Review of the Whale Optimization Algorithm - Theoretical Foundation, Improvements, and Hybridizations.pdf] |
+| **Effective/efficient variants** – e.g., *EWOA‑OPF* (effective WOA) for power‑flow problems. | • “EWOA‑OPF: effective whale optimization algorithm to solve optimal power flow problem” [Paper: A Systematic Review of the Whale Optimization Algorithm","Below is a concise overview of the most common ways that researchers have tried to **improve** the basic Whale‑Optimization Algorithm (WOA) and the **hybrid** schemes that combine WOA with other meta‑heuristics.  The list is organized by the type of modification rather than by individual papers, so you can see the main ideas that have appeared repeatedly in the literature.
+
+---
+
+## 1.  Algorithm‑level improvements
+
+| Category | Typical idea | Effect on WOA |
+|----------|--------------|----------------|
+| **Adaptive / self‑adjusting parameters** | The control parameters (e.g., the linear decreasing “a” factor, the probability of spiral vs. encircling) are updated on‑the‑fly by fuzzy logic, reinforcement learning, or deterministic formulas. | Improves convergence speed and reduces premature stagnation. |
+| **Chaotic or random map initialization** | Use logistic, tent, sine, or other chaotic sequences to generate the initial"
+q4,in-corpus,What are the main multi-objective hyperparameter-optimization approaches for machine learning?,multi-objective hyperparameter,4.75,2.75,rag,5,4,5,5,4,2,2,3,"Answer B provides a complete, well‑structured overview with a cited survey, while Answer A is truncated and lacks sources.",0.766,False,1,0,False,25.0,3.54,2773,778,139,500,"**Main multi‑objective HPO approaches**
+
+The survey groups the existing multi‑objective hyper‑parameter‑optimization (HPO) methods into three broad families [Paper: A survey on multi‑objective hyperparameter optimization algorithms for machine learning.pdf](/api/documents/.../A%20survey%20on%20multi-objective%20hyperparameter%20optimization%20algorithms%20for%20machine%20learning.pdf):
+
+| Category | Typical techniques | Key idea |
+|----------|-------------------|----------|
+| **Metaheuristic‑based algorithms** | Evolutionary algorithms (e.g., NSGA‑II, MOEA/D), population‑based training, multi‑objective particle swarm, genetic algorithms | Use population‑based search and Pareto‑dominance to explore the trade‑off surface without an explicit model of the objective functions. |
+| **Metamodel‑based (surrogate) algorithms** | Multi‑objective Bayesian optimization, Gaussian‑process or kriging surrogates, multi‑fidelity surrogates | Build an inexpensive predictive model of the objectives and guide the search via acquisition functions that balance exploitation and exploration. |
+| **Hybrid (metaheuristic + metamodel) approaches** | Surrogate‑assisted evolutionary algorithms, Bayesian‑guided evolutionary search, adaptive sampling combined with population methods | Fuse a surrogate model into a metaheuristic loop to reduce the number of expensive evaluations while retaining the diversity‑preserving strengths of evolutionary search. |
+
+These three groups constitute the **main multi‑objective HPO strategies** identified in the literature up to 2020.  
+
+**Summary** – Multi‑objective HPO is mainly tackled with (1) pure metaheuristics (e.g., evolutionary MOEAs), (2) surrogate‑based Bayesian optimization, and (3) hybrids that combine both ideas to exploit their complementary advantages.","Below is a concise overview of the most widely‑used families of **multi‑objective hyper‑parameter optimization (MO‑HPO)** methods in machine‑learning practice and research.  
+Each approach can be paired with any learning algorithm (e.g., neural nets, tree ensembles) and typically tries to optimize two or more conflicting criteria such as **prediction error**, **model size**, **inference latency**, or **energy consumption**.
+
+| Approach | Core Idea | Typical Algorithms / Variants | Strengths / When to Use |
+|----------|-----------|------------------------------|------------------------|
+| **Scalarization‑based methods** | Convert the multi‑objective problem into a single‑objective one by combining the objectives, then apply any standard HPO technique. | • Weighted‑sum (linear combination) <br>• Chebyshev / Tchebycheff scalarization <br>• ε‑constraint (optimize one objective while constraining the others) | Simple to implement; works with any existing single‑objective optimizer (random search, Bayesian Optimization, evolutionary algorithms).<br>**Limitation:** only finds solutions on the convex part of the Pareto front; requires the user to set weights or constraints a‑priori. |
+| **Evolutionary Multi‑Objective Optimization (EMO)** | Maintain a population of candidate configurations and evolve them using Pareto‑dominance‑based selection. | • **NSGA‑II** (Non‑Dominated Sorting Genetic Algorithm II) <br>• **NSGA‑III** (for many objectives) <br>• **MOEA/D** (Decomposition) <br>• **SMS‑EMOA** (S‑metric selection) | Naturally"
+q5,in-corpus,How are machine learning and optimization methods combined in practice?,Application of machine learning,2.75,3.25,base,4,2,2,3,4,3,2,4,"Answer A is factually accurate and broader, though slightly incomplete; Answer B focuses narrowly on hyperparameter tuning and relies on dubious citations.",0.565,False,4,0,False,24.81,3.56,2403,1000,134,500,"**Combining Machine‑Learning (ML) models with optimization techniques in practice**
+
+Machine‑learning algorithms have *hyperparameters* (e.g., number of layers, learning‑rate, kernel type) that must be set before training. Because the performance surface is usually non‑convex, non‑differentiable, and may include discrete/categorical variables, researchers treat hyper‑parameter selection as an **optimization problem** and apply dedicated solvers to search the space [Paper: A survey on multi‑objective hyperparameter optimization algorithms for machine learning.pdf](/api/documents/.../A%20survey%20on%20multi‑objective%20hyperparameter%20optimization%20algorithms%20for%20machine%20learning.pdf).
+
+### Typical workflow
+1. **Define objectives** – error‑based metric, inference time, model size, energy use, etc. (often multiple, hence *multi‑objective* HPO) [Paper: A survey on multi‑objective hyperparameter optimization algorithms for machine learning.pdf](/api/documents/.../A%20survey%20on%20multi‑objective%20hyperparameter%20optimization%20algorithms%20for%20machine%20learning.pdf).
+2. **Choose an optimizer** – could be a simple heuristic (grid/random search) or a sophisticated method (Bayesian, evolutionary, reinforcement‑learning, etc.) [Paper: A survey on multi‑objective hyperparameter optimization algorithms for machine learning.pdf](/api/documents/.../A%20survey%20on%20multi‑objective%20hyperparameter%20optimization%20algorithms%20for%20machine%20learning.pdf).
+3. **Iterative loop**  
+   - The optimizer proposes a hyper‑parameter configuration.  
+   - The ML model is trained on the dataset with that configuration.  
+   - Performance(s) are measured and fed back to the optimizer as objective values.  
+   - The optimizer updates its search strategy (e.g., builds a surrogate model, evolves a population) and repeats. [Paper: A survey on multi‑objective hyperparameter optimization algorithms for machine learning.pdf](/api/documents/.../A%20survey%20on%20multi‑objective%20hyperparameter%20optimization%20algorithms%20for%20machine%20learning.pdf).
+
+### Common optimization families used for HPO
+| Family | Representative methods (as cited in the survey) | Typical role in HPO |
+|--------|-----------------------------------------------|----------------------|
+| **Simple search** | Grid search, Random search | Baselines; useful when few hyper‑parameters or cheap evaluations. |
+| **Meta‑heuristic / evolutionary** | Population‑based Training (PBT), Population‑based Bandits (PB2) | Evolve a population of configurations, exploit parallel training. |
+| **Surrogate‑based (Bayesian) ** | Bayesian Optimization, Freeze‑thaw BO, BO‑HB, Multi‑task BO | Build cheap predictive models (surrogates) of performance to guide sampling. |
+| **Multi‑fidelity** | Hyperband, Successive Halving | Allocate resources adaptively, early‑stop poor configurations. |
+| **Meta‑learning","### Overview  
+Machine learning (ML) and mathematical optimization are tightly intertwined in most real‑world projects.  In practice they are combined in three complementary ways:
+
+| How they’re combined | What it looks like in practice | Typical tools / libraries |
+|----------------------|--------------------------------|---------------------------|
+| **1. Training ML models = solving an optimization problem** | • Choose a loss (e.g., cross‑entropy, MSE) → minimize it w.r.t. model parameters.<br>• Use gradient‑based solvers (SGD, Adam, L‑BFGS) or specialized convex solvers when the loss is convex. | PyTorch, TensorFlow, JAX, MXNet; CVXPY, Gurobi for convex cases |
+| **2. Using optimization to improve or configure ML pipelines** | • **Hyper‑parameter tuning** – treat the validation loss as an objective and search the hyper‑parameter space with Bayesian optimization, evolutionary algorithms, or grid search.<br>• **Neural‑architecture search (NAS)** – formulate architecture choices as a combinatorial optimization problem and solve it with reinforcement learning or differentiable"
+q6,in-corpus,"How is Bayesian optimization used for hyperparameter tuning of machine-learning models, and where was it applied?",Bayesian,4.5,2.75,rag,5,4,5,4,4,1,2,4,A fully answers both parts with accurate info and a cited source; B lacks citations and does not finish the application part.,0.596,False,2,0,True,25.81,3.48,2813,975,143,500,"**Bayesian optimization (BO) for hyper‑parameter tuning**
+
+- **How it works**
+  - BO treats hyper‑parameter selection as a black‑box optimization problem.  
+  - A *surrogate model* (commonly a Gaussian process) is fitted to the already‑evaluated hyper‑parameter settings and their resulting performance.  
+  - An *acquisition function* uses this surrogate to predict which unseen hyper‑parameter value is most promising, then that configuration is evaluated.  
+  - This sequential process “estimates every next hyper‑parameter value based on the outcomes of previously tested hyper‑parameter values,” dramatically cutting the number of unnecessary trials and often finding a better configuration than exhaustive grid or random search.  \[[Paper: On Hyperparameter Optimization of Machine Learning Methods Using a Bayesian Optimization Algorithm to Predict Work Travel Mode Choice.pdf](/api/documents/.../On%20Hyperparameter%20Optimization%20of%20Machine%20Learning%20Methods%20Using%20a%20Bayesian%20Optimization%20Algorithm%20to%20Predict%20WTMC.pdf)\]  
+  - Because the surrogate can model both continuous and discrete/categorical spaces, BO can handle the mixed‑type hyper‑parameters typical of many ML algorithms.
+
+- **Where it was applied**
+  - The authors used BO to tune the hyper‑parameters of **five machine‑learning models**—Support Vector Machine, k‑Nearest Neighbors, Single Decision Tree, Ensemble Decision Tree, and Naïve Bayes—while predicting **work travel mode choice (WTMC)**.  
+  - Two real‑world travel‑behavior datasets were employed, and BO‑optimized models were shown to outperform grid‑search and random‑search baselines.  \[[Paper: On Hyperparameter Optimization of Machine Learning Methods Using a Bayesian Optimization Algorithm to Predict Work Travel Mode Choice.pdf](/api/documents/.../On%20Hyperparameter%20Optimization%20of%20Machine%20Learning%20Methods%20Using%20a%20Bayesian%20Optimization%20Algorithm%20to%20Predict%20WTMC.pdf)\]
+
+**Summary**  
+Bayesian optimization iteratively proposes hyper‑parameter settings using a surrogate (e.g., Gaussian process) built from past evaluations, thus needing far fewer trials than traditional methods. In the cited study, BO was used to fine‑tune five ML classifiers for the task of predicting work travel mode choice on two transportation datasets, achieving superior performance compared with grid and random search.","**Bayesian optimization (BO) for hyper‑parameter tuning – the idea in a nutshell**
+
+1. **What BO does**  
+   *Treat the validation performance of a model (e.g., accuracy, loss) as a black‑box function*  
+   \[
+   f(\mathbf{x}) = \text{validation‑score of model with hyper‑parameters }\mathbf{x}
+   \]  
+   where \(\mathbf{x}\) lives in a usually low‑dimensional, mixed (continuous + discrete) space (learning‑rate, number of layers, regularisation strength, etc.).  
+   Because each evaluation of \(f\) requires training the model, we want to find a good \(\mathbf{x}\) with as few evaluations as possible.
+
+2. **Core components of BO**  
+
+   | Component | Role |
+   |-----------|------|
+   | **Surrogate model** (e.g., Gaussian Process, Random Forest, Tree‑Parzen Estimator) | Provides a cheap probabilistic approximation \(\hat f\) of the true performance surface, yielding a mean and uncertainty for any \(\mathbf{x}\). |
+   | **Acquisition function** (e.g., Expected Improvement (EI), Upper Confidence Bound (UCB), Probability of Improvement) | Uses the surrogate’s prediction"
+q7,in-corpus,What is the Puma optimizer and what are its applications in machine learning?,Puma,3.5,1.5,rag,4,3,4,3,1,1,1,3,"Answer A provides a correct, reasonably sourced overview and applications; Answer B is incomplete and likely inaccurate.",0.669,False,0,0,False,24.91,3.24,2873,989,137,500,"**Puma optimizer – overview**
+
+- **What it is** – A **novel meta‑heuristic optimization algorithm** that introduces an *intelligent, automatic phase‑selection mechanism* (exploration vs. exploitation) for each iteration 【Paper: Puma optimizer -  a novel metaheuristic optimization algorithm and its application in machine learning.pdf】.  
+- **Key innovations**  
+  - *Smart phase‑change*: the algorithm detects which phase is currently more promising and can switch to the other phase when needed, helping it escape local optima 【Paper: Puma optimizer -  a novel metaheuristic optimization algorithm and its application in machine learning.pdf】.  
+  - Works on **continuous and discrete search spaces** and can be used as a **hybrid method** combined with other techniques 【Paper: Puma optimizer -  a novel metaheuristic optimization algorithm and its application in machine learning.pdf】.  
+- **Performance** – Tested on benchmark functions (F1‑F13) with dimensions 100, 500, 1000:  
+  - Outperformed or matched competing algorithms on most **unimodal** (F1‑F7) and **multimodal** (F8‑F13) functions 【Paper: Puma optimizer -  a novel metaheuristic optimization algorithm and its application in machine learning.pdf】.  
+  - Achieved good solution quality while keeping execution time acceptable 【Paper: Puma optimizer -  a novel metaheuristic optimization algorithm and its application in machine learning.pdf】.  
+
+**Applications in machine learning**
+
+- The paper positions the Puma optimizer as a **tool for solving optimization problems that arise in machine learning**, e.g., training models or tuning hyper‑parameters, thanks to its ability to efficiently explore large, high‑dimensional search spaces 【Paper: Puma optimizer -  a novel metaheuristic optimization algorithm and its application in machine learning.pdf】.  
+- Its **automatic phase selection** and **balanced exploration‑exploitation** make it suitable for tasks where the objective landscape is complex (e.g., deep‑learning loss surfaces, feature‑selection problems).  
+
+**Bottom line**
+
+The Puma optimizer is a new meta‑heuristic that autonomously chooses between exploration and exploitation phases, performs well on standard benchmark functions, and is presented as a promising optimizer for machine‑learning problems such as model training and hyper‑parameter search.","**PUMA optimizer (short for *Practical Unified Momentum‑Adam*)**
+
+- **What it is** – PUMA is a gradient‑based optimiser for training deep neural networks that blends two ideas that have become standard in modern deep‑learning optimisation:
+"
+q8,in-corpus,What is retrieval-augmented generation (RAG) and for which tasks is it beneficial?,Retrieval-Augmented Generation,3.0,4.25,base,3,3,2,4,5,3,5,4,Answer A fully and accurately covers RAG definition and useful tasks; Answer B is incomplete and includes questionable or vague citations.,0.57,False,6,0,False,24.49,4.58,2413,1000,142,500,"**Retrieval‑Augmented Generation (RAG)**  
+
+- **Definition** – RAG couples a **parametric language model** (e.g., BART) with a **non‑parametric document retriever**.  
+  - At inference, the retriever fetches a set of external passages (typically from Wikipedia).  
+  - The generator conditions on both the input and the retrieved texts, learning to **jointly train** the retriever and generator so that the most relevant knowledge is incorporated into the output.  
+  - Two variants are discussed: **RAG‑Sequence** (generates conditioned on a single retrieved document) and **RAG‑Token** (mixtures over documents at each token) [Paper: Retrieval‑Augmented Generation for Knowledge‑Intensive NLP Tasks.pdf](/api/documents/.../file).
+
+**Tasks that benefit from RAG**  
+
+| Knowledge‑intensive task | Why RAG helps (as reported) |
+|---------------------------|------------------------------|
+| **Open‑domain Question Answering** (e.g., Natural Questions, MS‑MARCO) | Retrieval improves answer recall; more retrieved docs raise Exact Match and Rouge‑L scores [Paper: Retrieval‑Augmented Generation for Knowledge‑Intensive NLP Tasks.pdf](/api/documents/.../file) |
+| **Fact verification** (FEVER) | Access to up‑to‑date evidence improves factuality; BM25 works well but dense retrieval still helps [Paper: Retrieval‑Augmented Generation for Knowledge‑Intensive NLP Tasks.pdf](/api/documents/.../file) |
+| **Jeopardy Question Generation** | RAG‑Token generates more factual and specific questions than BART (42.7 % vs 7.1 % judged more factual) [Paper: Retrieval‑Augmented Generation for Knowledge‑Intensive NLP Tasks.pdf](/api/documents/.../file) |
+| **Long‑form QA / Wikipedia article generation** | Prior work shows retrieval boosts performance; RAG unifies these gains in a single architecture [Paper: Retrieval‑Augmented Generation for Knowledge‑Intensive NLP Tasks.pdf](/api/documents/.../file) |
+| **Dialogue** | Retrieval of relevant background turns improves response relevance [Paper: Retrieval‑Augmented Generation for Knowledge‑Intensive NLP Tasks.pdf](/api/documents/.../file) |
+| **Translation","**Retrieval‑Augmented Generation (RAG)** is a neural architecture that combines two steps:
+
+1. **Retrieval** – given a user query, a dense or sparse retriever searches an external knowledge base (e.g., a document collection, Wikipedia, code snippets, product catalogs) and returns the most relevant passages.
+2. **Generation** – a generative language model (e.g., T5, GPT‑like) conditions its output on both the original query and the retrieved passages, producing a response that is grounded in real data.
+
+The key idea is to let the model **look up up‑to‑date, factual information** instead of trying to store everything in its parameters. This reduces hallucinations and allows the system to incorporate new knowledge without re‑training the entire model.
+
+---
+
+### When RAG is especially beneficial
+
+| Task | Why RAG helps |
+|------|---------------|
+| **Open‑domain QA / fact‑checking** | Retrieves precise source passages, enabling answers that are both correct and citeable. |
+| **Long‑form answer generation** (e.g., explainers, reports) | Supplies relevant background material so the generator can weave detailed, accurate narratives. |
+| **Conversational agents** (customer support, chatbots) | Pulls up product manuals, policy documents, or recent updates, keeping dialogs current. |
+| **Document‑grounded summarization** | Summarizes a set of retrieved documents rather than a single pre‑provided input. |
+| **Knowledge‑base completion / entity linking** | Retrieves related entries to infer missing facts or disambiguate entities. |
+| **Code assistance** (code completion, debugging) | Looks up similar code snippets or API docs to ground suggestions in real implementations. |
+| **Legal / medical advice (with strict grounding)** | Retrieves statutes, case law, or clinical guidelines to ensure answers reference authoritative sources. |
+| **Multilingual retrieval & generation** | Retrieves documents in the target language or in a pivot language, then generates responses in the desired language. |
+
+In short, RAG shines on any task that requires **accurate, up‑to‑date, or domain‑specific knowledge**"
+q9,in-corpus,Which feature-selection methods are based on optimization algorithms?,Feature Selection,3.25,2.0,rag,4,3,2,4,1,1,1,5,Answer A provides relevant methods but is incomplete and has limited source detail; Answer B gives no answer.,0.683,False,0,0,False,26.46,4.54,2706,1000,133,500,"**Feature‑selection methods that rely on optimization algorithms (mostly meta‑heuristics)**  
+
+| Optimization‑based method | Typical name in the literature | Key references in the provided context |
+|---------------------------|--------------------------------|----------------------------------------|
+| **Ant‑Colony Optimization (ACO)** | Ant colony‑based feature selection | Ahmed (2005) ; Aghdam et al. (2009)【Paper: Review Of Feature Selection Methods Using Optimization Algorithm.pdf】 |
+| **Particle Swarm Optimization (PSO)** | PSO for feature selection (single‑ or multi‑objective) | Chen et al. (2012) ; Xue et al. (2012) ; Zahran & Kanaan (2009)【Paper: Review Of Feature Selection Methods Using Optimization Algorithm.pdf】 |
+| **Differential Evolution (DE)** | DE‑based or binary DE feature selection | Zorarpacı & Özel (2016) ; Vivekanandan & Iyengar (2017) ; Zhang et al. (2020)【Paper: Review Of Feature Selection Methods Using Optimization Algorithm.pdf】 |
+| **Artificial Bee Colony (ABC)** | ABC or multi‑objective ABC for feature selection | Wang et al. (2020) ; Zhang et al. (2019)【Paper: Review Of Feature Selection Methods Using Optimization Algorithm.pdf】 |
+| **Grey‑Wolf Optimizer (GWO)** | Binary GWO for EMG‑signal feature selection | Too et al. (2018)【Paper: Review Of Feature Selection Methods Using Optimization Algorithm.pdf】 |
+| **Whale Optimization Algorithm (WOA)** | WOA‑based high‑dimensional feature selection | Zheng et al. (2018) ; Too et al. (2021)【Paper: Review Of Feature Selection Methods Using Optimization Algorithm.pdf】 |
+| **Cat Swarm Optimization (CSO)** | CSO surveyed for performance on feature selection | Ahmad et al. (2020)【Paper: Review Of Feature Selection Methods Using Optimization Algorithm.pdf】 |
+| **Fitness‑Dependent Optimizer (FDO)** | Bee‑swarming‑reproductive process inspired optimizer | Abdullah & Ahmed (2019)【Paper:",
+q10,in-corpus,How are skin lesions segmented and classified in the reviewed approach?,skin lesions,2.5,1.75,rag,2,1,4,3,2,1,1,3,"Answer B outlines the full pipeline of segmentation and classification, though it lacks verifiable citations.",0.638,False,0,0,False,32.14,1.48,3093,940,135,500,"**Segmentation & Classification Pipeline (as described in the reviewed paper)**  
+
+| Step | What is done | How it is done (key details) |
+|------|--------------|------------------------------|
+| **1. Pre‑processing / Hair removal** | Thin and thick hairs are eliminated before segmentation. | A circular structuring element (SE) of 4 px removes thin hairs; 6–8 px removes thick hairs, chosen according to the SE size that best preserves lesion details【Paper: Segmenting and classifying skin lesions using a.pdf】 |
+| **2. Morphological closure** | Obtains a clean binary mask of the lesion. | A circular SE (matching the typically circular shape of lesions) is used for structural closure; the closed image and its complement are combined to isolate the lesion region【Paper: Segmenting and classifying skin lesions using a.pdf】 |
+| **3. Shade‑corner removal** | Eliminates dark corners that can confuse the mask. | A circular “quantum” mask is applied after closure to suppress corner shading【Paper: Segmenting and classifying skin lesions using a.pdf】 |
+| **4. Binary cylindrical mask & boundary refinement** | Expands the mask to cover the full lesion and defines precise borders. | A binary cylindrical mask (adjusted in position and circumference) is grown to match the segmented portion; the morphological gradient method locates pixels with maximal intensity change to delineate the lesion edge【Paper: Segmenting and classifying skin lesions using a.pdf】 |
+| **5. Feature extraction** | Captures shape, texture, colour, etc., for later classification. | Features are extracted from the segmented region (the paper notes the difficulty due to lesion similarity)【Paper: Segmenting and classifying skin lesions using a.pdf】 |
+| **6. Feature ranking & selection** | Reduces dimensionality and keeps the most informative descriptors. | **Eigen‑vector Centrality Feature Selection (ECFS)** assigns grades to each feature based on importance, selecting the most discriminative ones【Paper: Segmenting and classifying skin lesions using a.pdf】 |
+| **7. Classification** | Assigns the lesion to a disease class. | A **FOA‑SVM** (Flower‑Optimization‑Algorithm‑tuned Support Vector Machine) classifier is used (shown in Fig. 1 of the paper) to separate the three targeted skin‑condition categories【Paper: Segmenting and classifying skin lesions using a.pdf】 |
+
+### Summary
+The reviewed approach first removes hairs with size‑specific circular structuring elements, then applies circular morphological closure and a cylindrical mask plus a gradient‑based boundary detection to segment the lesion. After extracting a rich set of descriptors, ECFS ranks and selects the most salient features, and a FOA‑optimized SVM classifies the lesion into one of the target disease groups.","In the papers that were surveyed, the authors almost always treat **segmentation** and **classification** as two consecutive stages of a single pipeline:
+
+| Stage | Typical method | What it does | Typical training details |
+|-------|----------------|--------------|---------------------------|
+| **1. Lesion segmentation** | • U‑Net (or a U‑Net‑based variant such as Attention‑U‑Net, Nested‑U‑Net)<br>• Fully‑Convolutional Networks (FCN‑8s/FCN‑16s)<br>• DeepLab‑v3+/v3+ (atrous spatial pyramid pooling)<br>• Mask R‑CNN (when the task is cast as instance‑segmentation) | Produces a binary mask that isolates the pigmented region from the surrounding skin, hair, ruler marks, etc. | • Input: raw dermoscopic image (often after colour‑normalisation, hair removal, and contrast enhancement).<br>"
+q11,in-corpus,What datasets and evaluation metrics are used for skin-lesion segmentation models?,skin lesions,3.25,3.25,rag,3,2,4,4,4,3,2,4,A covers both datasets and metrics but has dubious citations; B lists datasets accurately but omits metrics.,0.631,False,0,0,False,30.72,4.54,3240,970,137,500,"**Datasets used for skin‑lesion segmentation**
+
+- **DermQuest, DermIS, PH2, DermNZ** – collected from public medical archives and expert contributions【Paper: Segmenting and classifying skin lesions using a.pdf】  
+- **“11k hands”** – healthy‑skin images taken from a publicly available source【Paper: Segmenting and classifying skin lesions using a.pdf】  
+- **ISIC 2017 and ISIC 2018** – the International Skin Imaging Collaboration datasets used for training, validation, and testing【Paper: Segmenting and classifying skin lesions using a.pdf】  
+- **DermNet NZ, Xiangya Derm, Ham 10,000** – additional databases employed for performance evaluation【Paper: Segmenting and classifying skin lesions using a.pdf】  
+
+**Evaluation metrics reported**
+
+- **Accuracy** – e.g., 98.92 % on the Ham 10,000 test set【Paper: Segmenting and classifying skin lesions using a.pdf】  
+- **Sensitivity (Recall)** – e.g., 99.68 % (Dataset A) and 98.10 % (Ham 10,000)【Paper: Segmenting and classifying skin lesions using a.pdf】  
+- **Specificity** – e.g., 99.80 % (Dataset A) and 99.15 % (Ham 10,000)【Paper: Segmenting and classifying skin lesions using a.pdf】  
+- **Jaccard Index (Intersection‑over‑Union)** – 0.772 on ISIC 2017 test set and 0.854 on PH2 dataset【Paper: Segmenting and classifying skin lesions using a.pdf】  
+- **Precision** – mentioned as part of “classification reliability, precision, and sensitivity” in the evaluation discussion【Paper: Segmenting and classifying skin lesions using a.pdf】  
+
+**Summary**  
+The paper evaluates segmentation models on a variety of public skin‑lesion image collections (DermQuest, DermIS, PH2, DermNZ, ISIC 2017/2018, DermNet NZ, Xiangya, Ham 10,000, and a healthy‑skin “11k hands” set) and reports standard segmentation metrics—accuracy, sensitivity, specificity, precision, and the Jaccard Index.","### Common Datasets for Skin‑Lesion Segmentation  
+
+| Dataset | Size / Modality | Annotation Type | Availability | Typical Use |
+|---------|----------------|----------------|--------------|------------|
+| **ISIC Challenge (2016‑2024)** | ~2 000–5 000 dermoscopic images per year | Pixel‑level lesion masks (binary) | Public (download via ISIC Archive) | Benchmark for most segmentation papers |
+| **PH²** | 200 high‑resolution dermoscopic images | Expert‑drawn masks | Public (University of Porto) | Small‑scale validation / transfer learning |
+| **HAM10000** | 10 015 dermoscopic images (no official masks, but many works create masks) | Often generated semi‑automatically; some releases include masks | Public (Kaggle/Zenodo) | Large‑scale pre‑training, often combined with ISIC masks |
+| **Dermofit Image Library** | 1 300 clinical images (dermoscopic & photographic) | Manual masks for a subset | Public (University of Edinburgh) | Clinical‑setting experiments |
+| **VIA (Visual Interactive Atlas) / Atlas of Dermoscopy** | ~1 300 images | Masks provided for a portion | Public (UCI) | Rare‑lesion categories |
+| **SD-198** | 198 dermoscopic images | Expert masks | Public (UCI) | Low‑data regime studies |
+| **MED-NODE / EDRA** | ~170–300 clinical images | Binary masks (often created by authors) | Limited public release | Specific to melanoma detection pipelines |
+| **MClass‑MS** (subset of ISIC) | 2 000+ images | Masks from ISIC 2018 challenge | Public |"
+q12,in-corpus,What open challenges and limitations does the LLM survey highlight?,Large Language,4.5,3.0,rag,5,4,5,4,4,2,2,4,Answer A fully addresses the survey's challenges with citations; Answer B is incomplete and lacks sources.,0.44,False,0,0,False,30.88,2.4,3052,994,135,500,"**Open challenges and limitations highlighted in the survey**
+
+- **Evaluation‑related limitations**
+  - The safety and bias results depend heavily on the *prompt set* and on *subjective review guidelines, content standards, and individual raters* — making the numbers fragile and hard to generalise【Paper: A Survey of Large Language Models.pdf】.  
+  - Most existing benchmarks (TruthfulQA, ToxiGen, BOLD, etc.) were built for *pre‑trained* LLMs, not for *fine‑tuned/chat‑oriented* models, so they may miss:
+    - adversarial inputs or specially crafted toxic content,  
+    - many demographic groups, and  
+    - nuanced multi‑turn safety failures【Paper: A Survey of Large Language Models.pdf】.  
+  - The authors advise monitoring *disaggregated* metrics and benchmarks to capture varied behaviour across demographics【Paper: A Survey of Large Language Models.pdf】.
+
+- **Safety in multi‑turn conversations**
+  - Multi‑turn dialogues are *more prone* to unsafe responses across models, and even the best‑performing model (Llama 2‑Chat) still shows higher violation rates in the “unqualified advice” category【Paper: A Survey of Large Language Models.pdf】.  
+
+- **Trade‑off between safety and helpfulness**
+  - Concise models like Falcon generate fewer unsafe tokens but often receive lower usefulness ratings (many “rating = 3” responses)【Paper: A Survey of Large Language Models.pdf】.  
+
+- **Residual bias and toxicity**
+  - Despite improvements, the survey notes that *toxicity* and *bias* remain “meaningful risks that the AI community has yet to fully mitigate”【Paper: A Survey of Large Language Models.pdf】.  
+
+- **Open‑source vs. closed‑source gaps**
+  - Open‑source models are catching up, yet there is still a “marked distinction” in performance and usability compared with production‑ready, heavily‑tuned closed‑source systems like ChatGPT, Bard, and Claude【Paper: A Survey of Large Language Models.pdf】.  
+
+**Summary**  
+The survey points out that current safety and bias evaluations are limited by prompt design, subjective labeling, and benchmarks not tailored to chat‑oriented LLMs. Multi‑turn safety, the balance between harmlessness and helpfulness, residual toxicity/bias, and the performance gap between open‑source and proprietary models remain key open challenges.","The survey on large‑language models (LLMs) points out a number of **open research challenges** and **current limitations** that span the whole life‑cycle of these systems—from data collection to deployment.  Below is a concise synthesis of the most frequently highlighted issues.
+
+---
+
+## 1. Data‑related Challenges  
+
+| Issue | Why it matters |
+|-------|----------------|
+| **Data quality & provenance** | Training corpora are noisy, contain outdated or false information, and often lack clear licensing.  This hampers reproducibility and raises legal/ethical concerns. |
+| **Bias & representativeness** | Web‑scale data reflect societal biases (gender, race, geography, ideology).  Mitigating them without sacrificing model utility remains unsolved. |
+| **Privacy & leakage** | Personal or copyrighted text can be memorized and reproduced verbatim, violating privacy regulations. |
+| **Multilingual coverage** | Low‑resource languages are under‑represented, leading to severe performance gaps across the world’s linguistic diversity. |
+
+---
+
+## 2. Model Architecture & Scaling  
+
+| Issue | Why it matters |
+|-------|----------------|
+| **Compute & energy cost** | Training the largest LLMs (≥100 B parameters) requires petaflop‑years of GPU time and massive electricity, limiting research to a few well‑funded labs. |
+| **"
+q13,web-fallback,What are the most commonly cited reasons for the 2021 Suez Canal blockage?,,3.25,2.5,rag,4,2,3,4,3,1,3,3,"Answer A is more accurate and complete despite weak citations, while B lacks sources and is truncated.",0.247,True,4,0,,33.99,1.33,4117,694,140,500,"**Main reasons most often mentioned for the 2021 Suez Canal blockage**
+
+- **Strong winds (31‑45 mph) creating a “banking effect.”**  
+  The wind pushed the Ever Given sideways, generating pressure pockets against the canal banks and causing the ship to ground.  
+  *Source:* [Web: Contributing Factors and Causes of the Suez Canal Blockage - Exploratio Journal](https://exploratiojournal.com/contributing-factors-and-causes-of-the-suez-canal-blockage)  
+
+- **Climate/weather conditions** – the same wind‑related factor is highlighted by other analyses that note “climate condition” as a key element while ruling out mechanical failure.  
+  *Source:* [Web: Suez Canal Blockage - Seaowl Group](https://seaowlgroup.com/suez-canal-blockage)  
+
+- **Human/operational error (navigation).**  
+  Although not detailed in the excerpts, the general narrative around the incident (e.g., Wikipedia) attributes the grounding to a loss of control while maneuvering the vessel, which is commonly interpreted as a navigational mistake.  
+  *Source:* [Web: 2021 Suez Canal obstruction - Wikipedia](https://en.wikipedia.org/wiki/2021_Suez_Canal_obstruction)  
+
+- **Mechanical failure ruled out.**  
+  Initial investigations explicitly stated that no engine or mechanical problem caused the grounding, focusing attention on the environmental and operational factors instead.  
+  *Source:* [Web: Suez Canal Blockage - Seaowl Group](https://seaowlgroup.com/suez-canal-blockage)  
+
+**Summary**  
+The blockage is most frequently attributed to strong winds that created a banking effect, compounded by challenging climate conditions and navigational errors, while mechanical failures have been dismissed.","The 2021 blockage of the Suez Canal by the container ship **Ever Given** is generally attributed to a combination of several factors that repeatedly appear in news reports, official statements, and expert analyses:
+
+| Reason | Why it mattered |
+|--------|-----------------|
+| **Strong, gusty winds (and a sandstorm)** | On 23 May 2021 the canal experienced a sand‑storm with sustained winds of 20‑30 km/h (≈12‑18 kt) that pushed the ship sideways. The vessel’s high profile makes it especially vulnerable to “bank effect” and wind‑induced drift. |
+| **Ship’s size and design** | Ever Given is a 400‑meter‑long, 59‑meter‑wide “mega‑container” ship (capacity ≈ 20,000 TEU). Its length‑to‑beam ratio and shallow draft left little margin for steering errors in the relatively narrow, curving section of the canal. |
+| **Human/operational error** | The vessel’s pilot and crew have been cited for possibly mis‑managing the ship’s speed and rudder angle while trying to navigate the “bight” (the S‑shaped stretch near the Great Bitter Lake). A later Egyptian maritime investigation suggested that the pilot’s decision to maintain a high speed despite the wind contributed to the loss of control. |
+| **Canal geometry (“the bend”)** | The blockage occurred at the “Bight,” a sharp S‑shaped curve where the canal narrows to about 300 m. This geometry amplifies lateral forces on a large vessel and reduces the space available for corrective maneuvers. |
+| **Low water level** | Seasonal low water in the canal (≈ 22 m depth) gave the ship a tighter vertical clearance. A reduced under‑keel clearance can affect steering response and makes it harder to correct a drift. |
+| **Tug‑boat support limitations** | Only a few tugs were initially on standby; the ship’s massive inertia meant that the tugs could not quickly counteract"
+q14,web-fallback,What are the main AI research trends expected in 2026?,,1.25,3.75,base,1,1,1,2,4,3,4,4,"Answer A provides a plausible, reasonably complete overview despite lacking citations; Answer B fails to address the question.",0.502,False,0,0,,23.66,1.54,2719,358,136,500,"**Answer:**  
+The supplied documents do not contain any statements about the AI research trends expected in 2026. They discuss current developments—such as scaling laws for large language models, open‑source vs. closed‑source releases, alignment via reinforcement learning from human feedback, and applications of ML/DL in geotechnical engineering—but they do not project specific research directions or priorities for the year 2026.  
+
+**Summary:** No information on 2026 AI research trends is present in the provided context. If you have additional sources that address future forecasts, I can synthesize those for you.","**AI research trends that are widely expected to dominate in 2026**
+
+| Trend | Why it matters / What we’re seeing now | Likely focus in 2026 |
+|-------|----------------------------------------|----------------------|
+| **1. Next‑generation foundation models** | Large language and multimodal models (GPT‑4, LLaMA‑2, PaLM‑2, Stable Diffusion, etc.) have proven they can be adapted to many tasks. | • Scaling to **trillion‑plus** parameters with better data curation.<br>• More **modalities** (text + image + video + audio + 3‑D).<br>• Techniques for **continual learning** and **domain‑specific fine‑tuning** without catastrophic forgetting. |
+| **2. Efficiency‑first AI** | The cost and carbon footprint of training huge models are a growing concern. | • **Sparse, mixture‑of‑experts, and pruning** methods that keep performance while reducing compute.<br>• **Quantization & low‑bit training** (4‑bit, 2‑bit) for both inference and fine‑tuning.<br>• **Distillation & “small‑model‑as‑teacher”** pipelines that produce lightweight models for edge devices. |
+| **3. Multimodal & “generalist” agents** | Recent models can follow instructions that span text, images, and code. | • **Unified agents** that can plan, reason, and act across modalities (e.g., text‑to‑code + image editing + robot control).<br>• Integration of **world models** and **embodied simulation** for better physical reasoning. |
+| **4"
+q15,web-fallback,Which country has the largest population today and what is the latest estimate?,,3.0,4.5,base,2,2,4,4,5,3,5,5,"Answer A gives accurate figures and directly answers the question, while B overstates the population and relies on weaker, less reliable sources.",0.249,True,0,0,,42.46,1.23,4987,452,137,362,"**Country with the largest population today:** **India**  
+
+**Latest estimate (2026):**  
+- About **1.5 billion** people 【Web: World Population Review】(https://worldpopulationreview.com)  
+
+(Other 2026 figures give 1.47 billion 【Web: Top 10 Most Populated Countries in the World (2026 Estimates)】(https://www.vajiraoinstitute.com/upsc-ias-current-affairs/most-populated-countries-in-the-world.aspx) or 1.429 billion 【Web: List of countries and dependencies by population】(https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_population). All place India ahead of China.)  
+
+**Summary:** India is currently the world’s most populous nation, with the most recent estimates for 2026 ranging from roughly 1.43 billion to 1.5 billion inhabitants.","India is now the world’s most‑populous country.  The United Nations’ 2022 revision of the World Population Prospects estimates India’s population at roughly **1.44 billion people** (about 1 440 million) for mid‑2023, and most national‑statistic updates place it in the same range for 2024.  China remains a close second with about 1.41 billion.  These figures are rounded to the nearest ten‑million and are subject to revision as new census data become available."
