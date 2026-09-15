@@ -72,32 +72,31 @@ The **same logic is ported to `backend/`** so the FastAPI server behaves identic
 
 ---
 
-## Getting Started
+## Getting Started (Clean Clone)
 
-### 1. Environment + API keys
+**Prerequisites:** Python 3.12, Node.js 18+, a [Groq API key](https://console.groq.com), and optionally a [Tavily API key](https://tavily.com) for web search fallback.
+
+### 1. Clone + environment
 
 ```bash
-cp .env.example .env   # then fill in GROQ_API_KEY, GROQ_MODEL, TAVILY_API_KEY
-uv sync
+git clone <repo-url> && cd "Capstone Project"
+cp .env.example .env        # then fill in GROQ_API_KEY, GROQ_MODEL, and optionally TAVILY_API_KEY
+uv sync                      # install Python deps (creates .venv)
 ```
+
+> **API keys are required.** Without `GROQ_API_KEY`, the LLM generation step will fail. Without `TAVILY_API_KEY`, web search fallback is silently skipped (corpus-only mode).
 
 ### 2a. Notebook (research/prototyping)
 
-Open `rag.ipynb`, run cells top to bottom, then:
-
-```python
-answer, sources, web_results, web_search_used = ask("What is Machine Learning?")
-print(answer)
-for s in sources:
-    print(f"[{s['score']:.3f}] {s['doc_title']}")
-if web_search_used:
-    for r in web_results:
-        print(f"- {r['title']}\n  {r['url']}")
+```bash
+uv run jupyter notebook rag.ipynb
 ```
+
+Run cells top to bottom. The notebook builds the full RAG pipeline and ends with a demo query. If the Groq API returns a rate-limit error (HTTP 429), wait a minute and re-run the final cell — or use a smaller model by changing `GROQ_MODEL` in your `.env`.
 
 ### 2b. Full stack (server + web app)
 
-Terminal 1 — backend:
+**Terminal 1 — backend:**
 
 ```bash
 uv run python backend/init_db.py        # create backend/data/research.db
@@ -106,11 +105,11 @@ uv run uvicorn backend.main:app --reload --port 8000
 # API docs: http://localhost:8000/docs
 ```
 
-Terminal 2 — frontend:
+**Terminal 2 — frontend:**
 
 ```bash
 cd frontend
-npm install
+npm install                             # install JS deps (node_modules is gitignored)
 npm run dev                             # http://localhost:5173
 ```
 
@@ -129,12 +128,48 @@ Upload a PDF, ask a question, and answers appear with `[Paper]`/`[Web]` sources.
 
 ---
 
-## Status & Known Issues
+## What Didn't Work
 
-- **Status**: In progress (`Logs.md`, 9 Sep 2026)
+These are the approaches we tried and abandoned, or problems we hit during development:
+
+| Attempt | What happened | Why we moved on |
+| :--- | :--- | :--- |
+| **Chunk size = 150 words** | Too large for print-debugging in the notebook; output was overwhelming and hard to inspect visually | Reduced to 50 during debug; final default is 300 (tune per use case) |
+| **JSON + NumPy cache** (`chunks.json` + `matrix.npy`) | Corrupted when the backend crashed mid-write; no atomicity guarantee; stale index after adding PDFs | Replaced with SQLite-backed index — single source of truth, rebuilt from DB on every server start |
+| **ChromaDB** | Considered as a vector store, but added a dependency that duplicated what NumPy + SQLite already did | Kept the lightweight in-memory cosine-similarity approach |
+| **Claude API** | Initially planned as the LLM, but Groq was faster and had a generous free tier | Switched to Groq; Claude remains a future option in `TODO.md` |
+| **Case-sensitive filename matching** | `fname.endswith("pdf")` misses `*.PDF` on case-sensitive file systems; unresolved minor bug | Logged in `Logs.md`; the current corpus is all lowercase so it works, but this is a real gap for user uploads |
+
+## Limitations
+
+- **Limited evaluation.** The notebook has **no formal baseline yet** — a TF-IDF vs. dense-vector **recall@3** comparison on hand-labeled queries is planned as part of the evaluation harness in `TODO.md`. Currently only qualitative spot-checking of retrieved chunks and generated answers has been done. There is also no scoring of *answer quality* (faithfulness/groundedness). A fuller evaluation harness is listed in `TODO.md`.
+- **API key dependency.** The system requires a valid `GROQ_API_KEY` to generate answers. Without it, retrieval works but generation fails. Free-tier rate limits (e.g., 429 errors) can block the notebook's final cell.
+- **No document-level deduplication.** If the same PDF is uploaded twice (via the UI or corpus seed), it gets indexed twice with different chunk IDs.
+- **Single-process backend.** The FastAPI server runs a single worker; concurrent requests may be slow because embedding is CPU-bound.
+- **Fixed embedding model.** `all-MiniLM-L6-v2` is fast but not the most accurate. Switching requires re-embedding the entire corpus.
+- **PDF text extraction is imperfect.** `pypdf` cannot handle scanned PDFs, complex tables, or figures — only text-based PDFs.
+- **No persistent vector index.** Embeddings are rebuilt from SQLite on every server startup. For large corpora this would be slow; currently acceptable at 435 chunks.
+
+## Status
+
 - **Working**: Local retrieval + generation with sources and similarity scores; web-search fallback; FastAPI backend; React UI; chat history in SQLite
-- **Learned**: Chunk size of 150 was too large for the local notebook run and print-debugging; reduced to 50 during development. The current default in `chunk_text` is 300 — tune per hardware.
-- **Not yet done** (see `TODO.md`): topic suggestions, export, dark mode, evaluation harness, deployment.
+- **In progress** (see `TODO.md`): fuller evaluation harness, topic suggestions, export, dark mode, deployment.
+
+---
+
+## Self-Evaluation Against the Project Rubric
+
+**Q1 — Does it run end-to-end from a clean clone, not just on your machine?**
+Yes, with caveats. `uv sync` + `npm install` reproduce the environment, and the 24 MB corpus is committed, so a fresh clone has all data. The full-stack path (`uv run uvicorn ...` + `npm run dev`) works without anything from this machine. Two non-reproducible bits are documented upfront: the notebook's last cell needs a live Groq API key (and free-tier 429 rate limits currently surface as a raw traceback in the saved output — a nicer error is planned), and the `backend/data/research.db` is gitignored so the first `/health` call re-seeds and re-embeds the corpus (takes a few minutes).
+
+**Q2 — Is there an actual baseline in the notebook, not just a final number?**
+Not yet. The notebook currently demonstrates the pipeline end-to-end with a single demo query but contains no baseline comparison. A **TF-IDF vs. `all-MiniLM-L6-v2`** retrieval baseline (recall@k on hand-labeled queries) is planned — see the evaluation harness in `TODO.md`.
+
+**Q3 — Did you report what didn't work, not only what did?**
+Yes. See the **What Didn't Work** table above (chunk-size debugging, the JSON+npy cache corruption, dropped ChromaDB/Claude plans, the case-sensitive filename bug) plus the **Limitations** list (no answer-quality scoring yet, no dedup, single-process backend, imperfect PDF extraction).
+
+**Q4 — Is the generated answer itself evaluated, or just retrieval?**
+Neither, formally. There is no numeric evaluation in the notebook yet — retrieval and generation have only been spot-checked qualitatively. A retrieval baseline (recall@k) and answer-grounding evaluation are planned, listed in `TODO.md`.
 
 ---
 
@@ -147,13 +182,11 @@ Capstone Project/
 ├── TODO.md                ← out-of-scope / future work
 ├── Logs.md                ← progress log & lessons learned
 ├── rag.ipynb              ← the RAG implementation (web search included)
-├── main.py                ← placeholder stub (not part of the RAG flow)
 ├── backend/               ← FastAPI server + RAG modules + SQLite (SQLAlchemy)
 ├── frontend/              ← React + Vite + Tailwind web app
 ├── research_papers/       ← PDF corpus (data you query over)
 ├── reference/             ← Lab6 instructions & guidelines PDFs
-├── pyproject.toml         ← project metadata + dependencies
-├── requirements.txt       ← pip-formatted dependency list
+├── pyproject.toml         ← project metadata + dependencies (uv-managed)
 ├── uv.lock                ← locked dependency versions
 ├── .python-version        ← Python 3.12
 ├── .env                   ← API keys (GITIGNORED, do not commit)
@@ -166,4 +199,4 @@ See [STRUCTURE.md](STRUCTURE.md) for a full file-by-file breakdown.
 
 ## Disclaimer
 
-`.env` contains your `GROQ_API_KEY` (and optionally `TAVILY_API_KEY`) and is intentionally gitignored. Never commit it. Runtime data (`backend/data/`) and `node_modules/` are also gitignored — a fresh clone needs `uv sync` + `npm install`.
+`.env` contains your `GROQ_API_KEY` (and optionally `TAVILY_API_KEY`) and is intentionally gitignored. Never commit it. Runtime data (`backend/data/`) and `node_modules/` are also gitignored — a fresh clone needs `uv sync` (Python) + `npm install` (frontend). API keys are **required** for the LLM and web-search steps.

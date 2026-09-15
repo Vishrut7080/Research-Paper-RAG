@@ -17,7 +17,6 @@ Capstone Project/
 ├── TODO.md                         ← out-of-scope / future work
 ├── Logs.md
 ├── rag.ipynb
-├── main.py
 ├── backend/                        ← FastAPI server + RAG modules + SQLite
 │   ├── main.py
 │   ├── config.py
@@ -27,16 +26,19 @@ Capstone Project/
 │   └── data/                       ← runtime DB / uploads (gitignored)
 ├── frontend/                       ← React + Vite + Tailwind web app
 │   └── src/
+│       ├── main.jsx               ← React entry point
 │       ├── App.jsx
 │       ├── api.js
+│       ├── index.css              ← Tailwind directives
 │       └── components/
+│           ├── Icons.jsx          ← inline SVG icons (PaperIcon, WebIcon)
+│           └── ...
 ├── research_papers/
 │   └── 7 PDF research papers       ← the query corpus
 ├── reference/
 │   ├── Lab6_Instructions.pdf
 │   └── Lab6_Own_Project_Guidelines.pdf
 ├── pyproject.toml
-├── requirements.txt
 ├── uv.lock
 ├── .python-version
 ├── .env                            ← API keys (gitignored) — NEVER commit
@@ -68,7 +70,7 @@ Development progress log (author: Vishrut, created 9 Sep 2026).
 
 | Cell(s) | Section | What it defines / does |
 | :--- | :--- | :--- |
-| 1 | Setup | Imports: `numpy`, `os`, `json`, **`requests`**, `SentenceTransformer`, `PdfReader`, `TfidfVectorizer` |
+| 1 | Setup | Imports: `numpy`, `os`, `json`, `requests`, `SentenceTransformer`, `PdfReader` |
 | 2 | Model | Loads `embedder = SentenceTransformer('all-MiniLM-L6-v2')` |
 | 5 | Load | `load_corpus(path='research_papers')` — extracts text from every `.pdf`/`.txt` into `{id, title, text}` |
 | 6 | Load | Builds `corpus = load_corpus()` |
@@ -83,9 +85,6 @@ Development progress log (author: Vishrut, created 9 Sep 2026).
 | 20 | Generation | `ask(query, k=3)` — retrieves, runs web search if top score < threshold, calls Groq, returns `(answer, retrieved, web_results, web_search_used)` |
 | 21 | Demo | `ask('What is Machine Learning?')` — end-to-end example that also prints web results when used |
 
-### `main.py`
-**Placeholder stub** — a `main()` that just prints "Hello from capstone-project!". Not part of the RAG flow; kept around for scaffolding. Replace or delete when a real entry point exists.
-
 ### `pyproject.toml`
 Python project metadata and dependencies:
 - `fastapi` + `uvicorn` — backend server (`backend/main.py`)
@@ -96,12 +95,9 @@ Python project metadata and dependencies:
 - `python-dotenv` — reads `.env`
 - `python-multipart` — file-upload parsing for `/upload`
 - `requests` — Tavily web-search API calls
-- `scikit-learn` — TF-IDF utility (available, currently unused in the pipeline)
+- `scikit-learn` — provides `TfidfVectorizer` for a future TF-IDF **retrieval baseline** (not yet implemented; see `TODO.md`)
 - `sentence-transformers` — `all-MiniLM-L6-v2` embeddings
 - `sqlalchemy` — SQLite ORM (chat history / document registry)
-
-### `requirements.txt`
-The same dependency list in pip format, for `pip install -r requirements.txt` users.
 
 ### `uv.lock`
 Lockfile pinning exact dependency versions for reproducible installs (`uv sync`).
@@ -209,8 +205,14 @@ Dev server on port 5173; proxies `/api/*` → `http://localhost:8000` (so `VITE_
 ### `frontend/tailwind.config.js` + `postcss.config.js`
 Tailwind v3 setup with a `primary` blue palette and JSX content paths.
 
+### `frontend/src/main.jsx`
+React entry point — mounts `<App />` into `#root` via `ReactDOM.createRoot` (wrapped in `StrictMode`).
+
 ### `frontend/src/api.js`
 Axios client, base URL = `VITE_API_URL` or `/api`. Wraps `upload`, `query`, `history`, `documents`, plus `documentFileUrl(id)` for PDF downloads.
+
+### `frontend/src/index.css`
+Tailwind directives (`@tailwind base/components/utilities`).
 
 ### `frontend/src/App.jsx`
 Layout: left sidebar (title + backend status, `DocumentUpload`, `DocumentsList`, `History`), right main area with `ChatInterface`. Polls `/health` on load.
@@ -226,6 +228,9 @@ Message list, query input, submit → `POST /query`; loads prior history on moun
 
 ### `frontend/src/components/SourcePanel.jsx`
 Renders retrieved `[Paper]` chunks (title + score + preview) and `[Web]` results (title link + preview); shows an amber banner when web search was used.
+
+### `frontend/src/components/Icons.jsx`
+Inline SVG icon components (`PaperIcon`, `WebIcon`) used by `SourcePanel` to label sources.
 
 ### `frontend/src/components/History.jsx`
 Sidebar list of past queries from `GET /history` with timestamp + "web" tag; local filter box; refresh button.
